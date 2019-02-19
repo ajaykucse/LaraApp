@@ -29,6 +29,7 @@
         "@fortawesome/fontawesome": "^1.1.8",
         "@fortawesome/fontawesome-svg-core": "^1.2.15",
         "admin-lte": "^3.0.0-alpha.2",
-        "copy-webpack-plugin": "^4.6.0"
+        "copy-webpack-plugin": "^4.6.0",
+        "vue-router": "^3.0.2"
     }
 }
