@@ -29,10 +29,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
       </li>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="#" class="nav-link">Contact</a>
-      </li>
-       <li class="nav-item">
-        <a href="#" class="nav-link"><i class="nav-icon fa fa-power-off"></i></a>
-      </li>
+      </li>                     
     </ul>
 
     <!-- SEARCH FORM -->
@@ -46,6 +43,21 @@ scratch. This page gets rid of all links and provides the needed markup only.
         </div>
       </div>
     </form>
+    <ul class="navbar-nav" style="float: right;margin-left: 700px;">
+      <li class="nav-item">
+        <a href="{{ route('logout') }}" 
+        onclick="event.preventDefault();
+          document.getElementById('logout-form').submit();">
+
+        <i class="nav-icon fa fa-power-off red" style="font-size: 18px;">
+          
+        </i>
+        </a>
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+          @csrf
+        </form>
+      </li>
+    </ul> 
   </nav>
   <!-- /.navbar -->
 
@@ -103,13 +115,13 @@ scratch. This page gets rid of all links and provides the needed markup only.
             <ul class="nav nav-sidebar">
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-th-large"></i>
+                  <i class="fas fa-th-large purple"></i>
                   <p>Manage Menu</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-th-list"></i>
+                  <i class="fas fa-th-list green"></i>
                   <p>Manage Menu Item</p>
                 </a>
               </li>
@@ -121,43 +133,43 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-file"></i>
+                  <i class="fas fa-file yellow"></i>
                   <p>Manage File</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="far fa-image"></i>
+                  <i class="far fa-image teal"></i>
                   <p>Manage Gallery</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-user"></i>
+                  <i class="fas fa-user indigo"></i>
                   <p>Recommended & Special Tips</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fab fa-trade-federation"></i>
+                  <i class="fab fa-trade-federation teal"></i>
                   <p>Manage Link</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fab fa-facebook-messenger"></i>
+                  <i class="fab fa-facebook-messenger blue"></i>
                   <p>Manage Feedback</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-heart"></i>
+                  <i class="fas fa-heart red"></i>
                   <p>Manage Career</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-cog"></i>
+                  <i class="fas fa-cog cyan"></i>
                   <p>Setting</p>
                 </a>
               </li>
