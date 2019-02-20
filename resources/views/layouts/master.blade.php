@@ -107,7 +107,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
           </li>
           <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="fas fa-home"></i>
+              <i class="fas fa-home nav-icon cyan"></i>
               <p>
                 Home/Menu
               </p>
@@ -116,61 +116,61 @@ scratch. This page gets rid of all links and provides the needed markup only.
             <!-- <ul class="nav nav-sidebar"> -->
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-th-large purple"></i>
+                  <i class="fas fa-th-large nav-icon purple"></i>
                   <p>Manage Menu</p>
                 </a>
               </li>
               <li class="nav-item">
                 <router-link to="/users" class="nav-link">
-                  <i class="fas fa-user teal"></i>
+                  <i class="fas fa-users nav-icon teal"></i>
                   <p>Users</p>
                 </router-link>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-th-list green"></i>
+                  <i class="fas fa-th-list nav-icon green"></i>
                   <p>Manage Menu Item</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-font"></i>
+                  <i class="fas fa-font nav-icon"></i>
                   <p>Manage Article</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-file yellow"></i>
+                  <i class="fas fa-file nav-icon yellow"></i>
                   <p>Manage File</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="far fa-image teal"></i>
+                  <i class="far fa-image nav-icon teal"></i>
                   <p>Manage Gallery</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fab fa-trade-federation teal"></i>
+                  <i class="fab fa-trade-federation nav-icon teal"></i>
                   <p>Manage Link</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fab fa-facebook-messenger blue"></i>
+                  <i class="fab fa-facebook-messenger nav-icon blue"></i>
                   <p>Manage Feedback</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-heart red"></i>
+                  <i class="fas fa-heart nav-icon red"></i>
                   <p>Manage Career</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">
-                  <i class="fas fa-cog cyan"></i>
+                  <i class="fas fa-cog nav-icon cyan"></i>
                   <p>Setting</p>
                 </a>
               </li>

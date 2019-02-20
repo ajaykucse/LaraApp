@@ -5,9 +5,11 @@
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Users Table</h3>
+
                         <div class="card-tools">
                             <button class="btn btn-success" data-toggle="modal" data-target="#addNew">Add New <i class="fas fa-user-plus fa-fw"></i> </button>
                         </div>
+
                     </div>
                     <!-- /.card-header -->
             <div class="card-body table-responsive p-0">
@@ -19,12 +21,14 @@
                             <th>Email</th>
                             <th>Role</th>
                             <th>Action</th>
+                             
                         </tr>
-                        <tr>
-                            <td>183</td>
-                            <td>John Doe</td>
-                            <td>11-7-2014</td>
-                            <td><span class="tag tag-success">Approved</span></td>
+
+                        <tr v-for="user in users" :key="user.id">
+                            <td>{{user.id}}</td>
+                            <td>{{user.name}}</td>
+                            <td>{{user.email}}</td>
+                            <td><span class="tag tag-success">{{user.role}}</span></td>
                             <td> 
                                 <a href="#">
                                     <i class="fas fa-edit blue"></i>
@@ -44,7 +48,7 @@
         </div>
         <!-- Modal -->
         <div class="modal fade" id="addNew" tabindex="-1" role="dialog" aria-labelledby="addNew" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-contered" role="document">
+            <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="addNew">Add New</h5>
@@ -52,7 +56,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form  @submit.prevent="createUser" @keydown="form.onKeydown($event)">
+                    <form @submit.prevent="createUser" >
                     <div class="modal-body">
                         <div class="form-group">
                             <input v-model="form.name" type="text" name="name" placeholder="Name" 
@@ -60,34 +64,33 @@
                             <has-error :form="form" field="name"></has-error>
                         </div>
                          <div class="form-group">
-                            <input v-model="form.email" type="text" name="email" placeholder="Email Address" 
-                                class="form-control" :class="{ 'is-invalid': form.errors.has('name') }">
+                            <input v-model="form.email" type="email" name="email" placeholder="Email Address" 
+                                class="form-control" :class="{ 'is-invalid': form.errors.has('email') }">
                             <has-error :form="form" field="email"></has-error>
                         </div>
                          <div class="form-group">
-                            <input v-model="form.bio" type="text" name="bio" placeholder="Short bio for user (Optional)" 
-                                class="form-control" :class="{ 'is-invalid': form.errors.has('bio') }">
+                            <textarea v-model="form.bio" name="bio" id="bio" placeholder="Short bio for user (Optional)" 
+                                class="form-control" :class="{ 'is-invalid': form.errors.has('bio') }"> </textarea>
                             <has-error :form="form" field="bio"></has-error>
                         </div>
+
                         <div class="form-group">
-                            <select  name="type" v-model="form.type" id="type" class="form-control" :class="{'is-invalid': form.errors.has('type') }">
-                                <option value="" v-model="selected">Select User Role</option>
+                            <select  name="role" v-model="form.role" id="role" class="form-control" :class="{'is-invalid': form.errors.has('role') }">
+                                <option value="">Select User Role</option>
                                 <option value="admin">Admin</option>
-                                <option value="user">Standard User</option>
                                 <option value="author">Author</option>
+                                <option value="user">Standard User</option>
                             </select>
                             <has-error :form="form" field="type"></has-error>
                         </div>
-
                         <div class="form-group">
                             <input v-model="form.password" type="password" name="password" placeholder="Password" id="password" class="form-control" :class="{ 'is-invalid': form.errors.has('password') }">
                             <has-error :form="form" field="password"></has-error>
                         </div>
-
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary">Create</button>
                         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create</button>
                     </div>
                 </form>
                 </div>
@@ -98,10 +101,11 @@
 
 <script>
     export default {
-        data(){
+        data() {
             return {
+                users : {},
                 form: new Form({
-                    name: '',
+                    name : '',
                     email: '',
                     password: '',
                     role: '',
@@ -111,8 +115,17 @@
                 })
             }
         },
-        mounted() {
-            console.log('Component mounted.')
+        methods: {
+            loadUsers(){
+                axios.get("api/users").then(({ data }) => (this.users = data.data));
+            },
+
+            createUser(){
+                this.form.post('api/users'); 
+            }
+        },
+        created() {
+            this.loadUsers();
         }
     }
 </script>
