@@ -121,7 +121,10 @@
             },
 
             createUser(){
-                this.form.post('api/users'); 
+
+                this.$Progress.start();
+                this.form.post('api/users');
+                this.$Progress.finish();
             }
         },
         created() {
