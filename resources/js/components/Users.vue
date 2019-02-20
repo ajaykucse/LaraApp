@@ -28,7 +28,7 @@
                             <td>{{user.id}}</td>
                             <td>{{user.name}}</td>
                             <td>{{user.email}}</td>
-                            <td><span class="tag tag-success">{{user.role}}</span></td>
+                            <td><span class="tag tag-success">{{user.role | upText}}</span></td>
                             <td> 
                                 <a href="#">
                                     <i class="fas fa-edit blue"></i>
