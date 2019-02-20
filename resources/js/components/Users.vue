@@ -124,6 +124,14 @@
 
                 this.$Progress.start();
                 this.form.post('api/users');
+
+                $('#addNew').modal('hide')
+
+                toast({
+                    type: 'success',
+                    title: 'User created in successfully'
+                })
+
                 this.$Progress.finish();
             }
         },

@@ -91,7 +91,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                with font-awesome or any other icon font library -->
           <li class="nav-item bg-dark">
             <router-link to="/dashboard" tag="a" class="nav-link"  active-class="active" exact>
-              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <i class="nav-icon fas fa-tachometer-alt blue"></i>
               <p>
                 Dashboard
               </p>
@@ -99,7 +99,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
           </li>
           <li class="nav-item bg-dark">
             <router-link to="/profile" tag="a" class="nav-link"  active-class="active" exact>
-              <i class="nav-icon fas fa-user"></i>
+              <i class="nav-icon fas fa-user green"></i>
               <p>
                  Profile
               </p>
@@ -187,7 +187,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <div class="content">
       <div class="container-fluid">
         <router-view></router-view>
-        
+
         <vue-progress-bar></vue-progress-bar>
       </div>
     </div>
