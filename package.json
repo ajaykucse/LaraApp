@@ -30,7 +30,7 @@
         "@fortawesome/fontawesome-svg-core": "^1.2.15",
         "admin-lte": "^3.0.0-alpha.2",
         "copy-webpack-plugin": "^4.6.0",
-        "sweetalert2": "^8.2.1",
+        "sweetalert2": "^8.2.2",
         "vform": "^1.0.0",
         "vue-progressbar": "^0.7.5",
         "vue-router": "^3.0.2"

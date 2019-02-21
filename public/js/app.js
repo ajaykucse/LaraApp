@@ -2006,8 +2006,8 @@ __webpack_require__.r(__webpack_exports__);
     createUser: function createUser() {
       this.$Progress.start();
       this.form.post('api/users');
-      Fire.$emit('AfterCreate');
-      $('#addNew').modal('hide');
+      Fire.$emit('AfterCreate'); // $('#addNew').modal('hide')
+
       toast({
         type: 'success',
         title: 'User created in successfully'

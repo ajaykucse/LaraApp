@@ -21,9 +21,7 @@
                             <th>Email</th>
                             <th>Role</th>
                             <th>Action</th>
-                             
                         </tr>
-
                         <tr v-for="user in users" :key="user.id">
                             <td>{{user.id}}</td>
                             <td>{{user.name}}</td>
@@ -39,9 +37,10 @@
                                 </a>
                             </td>
                         </tr>
+                        {{ $users->links() }}
                     </tbody>
                 </table>
-              </div>
+               </div>
               <!-- /.card-body -->
             </div>
             </div>
@@ -121,13 +120,15 @@
             },
 
             createUser(){
-
                 this.$Progress.start();
                 this.form.post('api/users');
+                .then(()=>{
+                    
+                })
+                .catch()
                 Fire.$emit('AfterCreate');
                 $('#addNew').modal('hide')
-
-                toast({
+                Toast({
                     type: 'success',
                     title: 'User created in successfully'
                 })

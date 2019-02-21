@@ -11,17 +11,17 @@ window.Vue = require('vue');
 import moment from 'moment';
 import { Form, HasError, AlertError } from 'vform';
 
-import swal from 'sweetalert2'
-window.swal = swal;
+import Swal from 'sweetalert2'
+window.swal = Swal;
 
-const toast = swal.mixin({
-	toast: true,
-	position: 'top-end',
-	showConfirmButton: false,
-	timer: 3000
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 3000
 });
 
-window.toast = toast;
+window.toast = Toast;
 
 window.Form = Form;
 

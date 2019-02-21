@@ -26,10 +26,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
       </li>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="index3.html" class="nav-link">Home</a>
-      </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a href="#" class="nav-link">Contact</a>
-      </li>                     
+      </li>                    
     </ul>
 
     <!-- SEARCH FORM -->
@@ -43,7 +40,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         </div>
       </div>
     </form>
-    <ul class="navbar-nav" style="float: right;margin-left: 700px;">
+    <ul class="navbar-nav" style="float: right;margin-left: 730px;">
       <li class="nav-item">
         <a href="{{ route('logout') }}" 
         onclick="event.preventDefault();
