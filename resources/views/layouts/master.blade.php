@@ -88,9 +88,17 @@ scratch. This page gets rid of all links and provides the needed markup only.
                with font-awesome or any other icon font library -->
           <li class="nav-item bg-dark">
             <router-link to="/dashboard" tag="a" class="nav-link"  active-class="active" exact>
-              <i class="nav-icon fas fa-tachometer-alt blue"></i>
+              <i class="nav-icon fas fa-tachometer-alt teal"></i>
               <p>
                 Dashboard
+              </p>
+            </router-link>
+          </li>
+          <li class="nav-item bg-dark">
+            <router-link to="/developer" tag="a" class="nav-link"  active-class="active" exact>
+              <i class="nav-icon fab fa-dev blue"></i>
+              <p>
+                  Developer
               </p>
             </router-link>
           </li>
