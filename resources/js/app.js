@@ -1,4 +1,3 @@
-
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -12,6 +11,7 @@ import moment from 'moment';
 import { Form, HasError, AlertError } from 'vform';
 
 import Swal from 'sweetalert2'
+
 window.swal = Swal;
 
 const Toast = Swal.mixin({
@@ -19,6 +19,7 @@ const Toast = Swal.mixin({
   position: 'top-end',
   showConfirmButton: false,
   timer: 3000
+
 });
 
 window.toast = Toast;
@@ -29,6 +30,7 @@ Vue.component(HasError.name, HasError)
 Vue.component(AlertError.name, AlertError)
 
 import VueRouter from 'vue-router'
+
 Vue.use(VueRouter)
 
 import VueProgressBar from 'vue-progressbar'
