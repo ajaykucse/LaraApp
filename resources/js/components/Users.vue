@@ -5,15 +5,13 @@
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Users Table</h3>
-
                         <div class="card-tools">
                             <button class="btn btn-success" @click="newModal">Add New <i class="fas fa-user-plus fa-fw"></i> </button>
                         </div>
-
                     </div>
                     <!-- /.card-header -->
             <div class="card-body table-responsive p-0">
-                <table class="table table-hover">
+                <table   class="table table-hover display" id="table_id">
                     <tbody>
                         <tr>
                             <th>ID</th>
@@ -44,8 +42,8 @@
               </div>
               <!-- /.card-body -->
             </div>
-            </div>
         </div>
+    </div>
         <!-- Modal -->
         <div class="modal fade" id="addNew" tabindex="-1" role="dialog" aria-labelledby="addNew" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
@@ -98,7 +96,7 @@
                 </div>
             </div>
         </div>
-    </div>
+</div>
 </template>
 
 <script>
@@ -127,7 +125,7 @@
                 .then(() => {
                     // success
                     $('#addNew').modal('hide');
-                    swal(
+                    Swal.fire(
                         'Updated!',
                         'Information has been updated.',
                         'success'
@@ -150,7 +148,7 @@
                  $('#addNew').modal('show');
             },
             deleteUser(id){
-                swal({
+                Swal.fire({
                     title: 'Are you sure?',
                     text: "You won't be able to revert this!",
                     type: 'warning',
@@ -162,14 +160,14 @@
                         // Send request to the server
                          if (result.value) {
                                 this.form.delete('api/users/'+id).then(()=>{
-                                        swal(
+                                        Swal.fire(
                                         'Deleted!',
                                         'Your file has been deleted.',
                                         'success'
                                         )
                                     Fire.$emit('AfterCreate');
                                 }).catch(()=> {
-                                    swal("Failed!", "There was something wronge.", "warning");
+                                    Swal.fire("Failed!", "There was something wronge.", "warning");
                                 });
                          }
                     })
@@ -185,10 +183,11 @@
 
                     $('#addNew').modal('hide')
 
-                    toast({
+                   Toast.fire({
                         type: 'success',
                         title: 'User Created in successfully'
-                        })
+                    })
+
                     this.$Progress.finish();
                 })
                 .catch(()=>{
@@ -203,4 +202,12 @@
             // setInterval(() => this.loadUsers(), 3000);
         }
     }
+
+
+        $(document).ready( function () {
+        $('#table_id').DataTable();
+    } );
+
+
 </script>
+ 
