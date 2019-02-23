@@ -2231,6 +2231,8 @@ __webpack_require__.r(__webpack_exports__);
         Swal.fire('Updated!', 'Information has been updated.', 'success');
 
         _this.$Progress.finish();
+
+        Fire.$emit('AfterCreate');
       }).catch(function () {
         _this.$Progress.fail();
       });
