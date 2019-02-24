@@ -7,8 +7,8 @@
 require('./bootstrap');
 
 window.Vue = require('vue');
+
 import $ from 'jquery';
-import 'datatables.net';
 
 import SweetAlert2 from 'sweetalert2/dist/sweetalert2.js';
 import 'sweetalert2/src/sweetalert2.scss';
@@ -36,6 +36,8 @@ window.Form = Form;
 Vue.component(HasError.name, HasError)
 Vue.component(AlertError.name, AlertError)
 
+Vue.component('pagination', require('laravel-vue-pagination'));
+
 import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
@@ -52,7 +54,8 @@ let routes = [
   { path: '/dashboard', component: require('./components/Dashboard.vue').default},
   { path: '/developer', component: require('./components/Developer.vue').default},
   { path: '/users', component: require('./components/Users.vue').default},
-  { path: '/profile', component: require('./components/Profile.vue').default}
+  { path: '/profile', component: require('./components/Profile.vue').default},
+  { path: '*', component: require('./components/NotFound.vue').default}
 ]
 
 const router = new VueRouter({
@@ -102,5 +105,13 @@ Vue.component(
 
 const app = new Vue({
     el: '#app',
-    router
+    router,
+    data:{
+    	search: '' 
+    },
+    methods: {
+    	searchit(){
+    		Fire.$emit('searching');
+    	}
+    }
 });

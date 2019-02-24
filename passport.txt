@@ -4,3 +4,13 @@ Client secret: OK3oMCwfNzpBjXxGzJUlZEff7DZXtRt1BHYSXcj4
 Password grant client created successfully.
 Client ID: 2
 Client secret: GYtQNe4cVQeA235AIrwX8tPdUSKHrNl9Et02F7fK
+
+
+
+
+Client ID: 3
+Client secret: 7wc1C8bbbZajRhWIz02QFRdOcfISUeBF4AWAjLrR
+Password grant client created successfully.
+Client ID: 4
+Client secret: f5IpgMdJP9Kg1WGRG1Y2sXMRsxvCu3FHFWIprnkN
+

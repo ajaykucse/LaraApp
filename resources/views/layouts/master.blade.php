@@ -11,6 +11,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <title>Admin | Dashboard</title>
   <!-- CSRF Token -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
+
+
+
+
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="/css/app.css">
 </head>
@@ -28,25 +32,13 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <a href="index3.html" class="nav-link">Home</a>
       </li>                    
     </ul>
-
-    <!-- SEARCH FORM -->
-    <form class="form-inline ml-3">
-      <div class="input-group input-group-sm">
-        <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
-        <div class="input-group-append">
-          <button class="btn btn-navbar" type="submit">
-            <i class="fa fa-search"></i>
-          </button>
-        </div>
-      </div>
-    </form>
-    <ul class="navbar-nav" style="float: right;margin-left: 730px;">
+    <ul class="navbar-nav">
       <li class="nav-item">
         <a href="{{ route('logout') }}" 
         onclick="event.preventDefault();
           document.getElementById('logout-form').submit();">
 
-        <i class="nav-icon fa fa-power-off red" style="font-size: 18px;">
+        <i class="nav-icon fa fa-power-off red" style="font-size: 18px; padding: 2px;">
           
         </i>
         </a>
@@ -55,6 +47,18 @@ scratch. This page gets rid of all links and provides the needed markup only.
         </form>
       </li>
     </ul> 
+
+    <!-- SEARCH FORM -->
+     
+      <div class="input-group input-group-sm">
+        <input class="form-control form-control-navbar" @keyup="searchit" v-model="search" type="search" placeholder="Search" aria-label="Search" style="width: 300px;">
+        <div class="input-group-append">
+          <button class="btn btn-navbar" @click="searchit">
+            <i class="fa fa-search"></i>
+          </button>
+        </div>
+      </div>
+  
   </nav>
   <!-- /.navbar -->
 
@@ -185,9 +189,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
     </div>
     <!-- /.sidebar -->
   </aside>
+
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
-    
     <!-- Main Content -->
     <div class="content">
       <div class="container-fluid">
@@ -208,6 +212,13 @@ scratch. This page gets rid of all links and provides the needed markup only.
   </footer>
 </div>
 <!-- ./wrapper -->
+
+@auth
+<script>
+  window.user = @json(auth()->user())
+</script>
+@endauth
+
 <script src="/js/app.js"></script>
 </body>
 </html>

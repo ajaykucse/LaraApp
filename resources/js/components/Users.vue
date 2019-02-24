@@ -1,4 +1,4 @@
-<template>
+ <template name="loginstemplate">
     <div class="container">
         <div class="row mt-5">
             <div class="col-md-12">
@@ -11,8 +11,8 @@
                     </div>
                     <!-- /.card-header -->
             <div class="card-body table-responsive p-0">
-                <table   class="table table-hover display" id="table_id">
-                    <tbody>
+                <table   class="table table-hover display">
+                        <thead>
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
@@ -21,8 +21,9 @@
                             <th>Action</th>
                              
                         </tr>
-
-                        <tr v-for="user in users" :key="user.id">
+                        </thead>
+                        <tbody>
+                        <tr v-for="user in users.data" :key="user.id">
                             <td>{{user.id}}</td>
                             <td>{{user.name}}</td>
                             <td>{{user.email}}</td>
@@ -41,6 +42,9 @@
                 </table>
               </div>
               <!-- /.card-body -->
+              <div class="card-footer">
+              <center>  <pagination :data="users" @pagination-change-page="getResults"></pagination> </center>
+              </div>
             </div>
         </div>
     </div>
@@ -118,6 +122,12 @@
             }
         },
         methods: {
+            getResults(page = 1) {
+                axios.get('api/users?page=' + page)
+                .then(response => {
+                    this.users = response.data;
+                });
+            },
             updateUser(){
                 // console.log('Editing data');
                 this.$Progress.start();
@@ -174,7 +184,7 @@
                     })
             },
                 loadUsers(){
-                    axios.get("api/users").then(({ data }) => (this.users = data.data));
+                    axios.get("api/users").then(({ data }) => (this.users = data));
             },
                 createUser(){
                 this.$Progress.start();
@@ -196,6 +206,16 @@
             }
         },
         created() {
+            Fire.$on('searching',() => {
+                let query = this.$parent.search;
+                axios.get('api/findUser?q= ' + query)
+                .then((data)=> {
+                    this.users = data.data
+                })
+                .catch(() => {
+
+                })
+            })
             this.loadUsers();
             Fire.$on('AfterCreate',() => {
                 this.loadUsers();
@@ -204,11 +224,4 @@
         }
     }
 
-
-        $(document).ready( function () {
-        $('#table_id').DataTable();
-    } );
-
-
 </script>
- 
