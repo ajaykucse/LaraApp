@@ -19,8 +19,9 @@
                     <h3 class="widget-user-username">{{this.form.name}}</h3>
                     <h5 class="widget-user-desc">{{this.form.type}}</h5>
                 </div>
-                <div class="widget-user-image">
-                    <img class="img-circle" :src="getProfilePhoto()" alt="User Avatar">
+                <div class="widget-user-image">   
+                    <!-- :src="getProfilePhoto()" -->
+                    <img class="img-circle" src="{{ asset('images/profile.png') }}"  alt="User Avatar">
                 </div>
                 <div class="card-footer">
                     <div class="row">

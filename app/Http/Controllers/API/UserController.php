@@ -11,17 +11,20 @@ use Illuminate\Pagination\Paginator;
 
 class UserController extends Controller
 {
-
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:api');
-    // }
-
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('api');
+    }
 
     /**
-     * Display a listing of the resource.
+     * Show the application dashboard.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Support\Renderable
      */
     public function index()
     {

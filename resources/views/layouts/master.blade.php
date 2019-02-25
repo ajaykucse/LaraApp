@@ -1,3 +1,65 @@
+<style>
+  
+.searchbox
+{
+  display: flex;
+  background-color: #2C80D3;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.searchbox input
+{
+  line-height: 30px;
+  background: none;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 16px;  
+  transition: all 0.5s;
+  /*for animate*/
+  width: 0px;
+}
+.searchbox:hover input
+{
+  width: 886px;
+}
+.searchbox input:focus
+{
+  width: 886px;
+}
+::placeholder 
+{
+  color: white;
+}
+.searchbox button 
+{
+  height: 30px;
+  width: 30px;
+  background: none;
+  color: white;
+  border: none;
+  outline: none;
+}
+
+.searchbox:hover button 
+{
+  color: black;
+  background-color: white;
+  border-radius: 5%;
+}
+
+.searchbox input:focus + button
+{
+  color: black;
+  background-color: white;
+  border-radius: 5%;
+}
+
+
+
+</style>
+
 <!DOCTYPE html>
 <!--
 This is a starter template page. Use this page to start your new project from
@@ -13,9 +75,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
-
-
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
   <link rel="stylesheet" type="text/css" href="/css/app.css">
 </head>
 <body class="hold-transition sidebar-mini">
@@ -32,13 +92,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <a href="index3.html" class="nav-link">Home</a>
       </li>                    
     </ul>
-    <ul class="navbar-nav">
+    
+      <ul class="navbar-nav" style="padding-right: 10px;">
       <li class="nav-item">
         <a href="{{ route('logout') }}" 
         onclick="event.preventDefault();
           document.getElementById('logout-form').submit();">
 
-        <i class="nav-icon fa fa-power-off red" style="font-size: 18px; padding: 2px;">
+        <i class="nav-icon fa fa-power-off red" style="font-size: 18px;">
           
         </i>
         </a>
@@ -49,16 +110,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
     </ul> 
 
     <!-- SEARCH FORM -->
-     
-      <div class="input-group input-group-sm">
-        <input class="form-control form-control-navbar" @keyup="searchit" v-model="search" type="search" placeholder="Search" aria-label="Search" style="width: 300px;">
-        <div class="input-group-append">
-          <button class="btn btn-navbar" @click="searchit">
+      <div class="searchbox">
+        <input name="search" @keyup="searchit" v-model="search" type="search" placeholder="Search" aria-label="Search">
+         
+          <button @click="searchit">
             <i class="fa fa-search"></i>
-          </button>
-        </div>
+          </button> 
       </div>
-  
+
   </nav>
   <!-- /.navbar -->
 
