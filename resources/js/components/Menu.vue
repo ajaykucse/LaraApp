@@ -1,41 +1,53 @@
- <template name="loginstemplate">
+ <template>
     <div class="container">
         <div class="row mt-3">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Users Table</h3>
+                        <h3 class="card-title">Menu List</h3>
                         <div class="card-tools">
-                            <button class="btn btn-success" @click="newModal">Add New 
+                            <button class="btn btn-success" @click="newModal">Add New
                                 <i class="fas fa-user-plus fa-fw"></i> 
                             </button>
                         </div>
                     </div>
                     <!-- /.card-header -->
             <div class="card-body table-responsive p-0">
-                <table   class="table table-hover display">
+                <table   class="table table-hover">
                         <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>Sl.</th>
                             <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
+                            <th>ID</th>
+                            <th>Status</th>
                             <th>Action</th>
-                             
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="user in users.data" :key="user.id">
-                            <td>{{user.id}}</td>
-                            <td>{{user.name}}</td>
-                            <td>{{user.email}}</td>
-                            <td><span class="tag tag-success">{{user.role | upText}}</span></td>
+                    
+                        <tr v-for="(menu, index) in menus.data" :key="menu.id" >
+                            <td>{{ index + 1 }} </td>
+                            <td>{{menu.name}}</td>
+                            <td>{{menu.id}}</td>
+                            <td>
+                               
+                                <span v-if="menu.isActive==1" class="label label-success"> Active </span>
+                                <span v-else class="label label-danger"> Unactive </span>
+                            </td>
                             <td> 
-                                <a href="#" @click="editModal(user)">
+                                 
+                                 <a v-if="menu.isActive==1" href="#"  @click="updateMenuZero(menu.id)">
+                                    <i class="fas fa-thumbs-down red"></i>
+                                </a>
+                                <a v-else href="#" @click="updateMenuOne(menu.id)">
+                                    <i class="fas fa-thumbs-up green"></i>
+                                </a>
+                                /
+                                <a href="#" @click="editModal(menu)">
                                     <i class="fas fa-edit blue"></i>
                                 </a>
                                 /
-                                <a href="#" @click="deleteUser(user.id)">
+                                <a href="#" @click="deleteMenu(menu.id)">
                                     <i class="fas fa-trash red"></i>
                                 </a>
                             </td>
@@ -45,52 +57,34 @@
               </div>
               <!-- /.card-body -->
               <div class="card-footer">
-              <center>  <pagination :data="users" @pagination-change-page="getResults"></pagination> </center>
+              <pagination :data="menus" @pagination-change-page="getResults"></pagination>
               </div>
             </div>
         </div>
     </div>
         <!-- Modal -->
-        <div class="modal fade" id="addNew" tabindex="-1" role="dialog" aria-labelledby="addNew" aria-hidden="true">
+        <div class="modal fade" id="adNew" tabindex="-1" role="dialog" aria-labelledby="adNew" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 v-show="!editmode" class="modal-title" id="addNew">Add New</h5>
-                        <h5 v-show="editmode" class="modal-title" id="addNew">Update User's Info</h5>
+                        <h5 v-show="!editmode" class="modal-title" id="adNew">Add New Menu</h5>
+                        <h5 v-show="editmode" class="modal-title" id="adNew">Update Menu's Info</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form @submit.prevent="editmode ? updateUser() : createUser()" >
+                    <form @submit.prevent="editmode ? updateMenu() : createMenu()" >
                     <div class="modal-body">
                         <div class="form-group">
                             <input v-model="form.name" type="text" name="name" placeholder="Name" 
                                 class="form-control" :class="{ 'is-invalid': form.errors.has('name') }">
                             <has-error :form="form" field="name"></has-error>
                         </div>
-                         <div class="form-group">
-                            <input v-model="form.email" type="email" name="email" placeholder="Email Address" 
-                                class="form-control" :class="{ 'is-invalid': form.errors.has('email') }">
-                            <has-error :form="form" field="email"></has-error>
-                        </div>
-                         <div class="form-group">
-                            <textarea v-model="form.bio" name="bio" id="bio" placeholder="Short bio for user (Optional)" 
-                                class="form-control" :class="{ 'is-invalid': form.errors.has('bio') }"> </textarea>
-                            <has-error :form="form" field="bio"></has-error>
-                        </div>
-
-                        <div class="form-group">
-                            <select  name="role" v-model="form.role" id="role" class="form-control" :class="{'is-invalid': form.errors.has('role') }">
-                                <option value="">Select User Role</option>
-                                <option value="admin">Admin</option>
-                                <option value="author">Author</option>
-                                <option value="user">Standard User</option>
-                            </select>
-                            <has-error :form="form" field="type"></has-error>
-                        </div>
-                        <div class="form-group">
-                            <input v-model="form.password" type="password" name="password" placeholder="Password" id="password" class="form-control" :class="{ 'is-invalid': form.errors.has('password') }">
-                            <has-error :form="form" field="password"></has-error>
+                          <div class="form-group">
+                            <label for="">Is Publish: </label>
+                            <input v-model="form.isActive" type="checkbox" 
+                             :class="{ 'is-invalid': form.errors.has('isActive') }">
+                            <has-error :form="form" field="isActive"></has-error>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -110,33 +104,30 @@
         data() {
             return {
                 editmode: false,
-                users : {},
+                menus : {},
                 form: new Form({
                     id: '',
                     name : '',
-                    email: '',
-                    password: '',
-                    role: '',
-                    bio: '',
-                    photo: ''
+                    isActive : ''
 
                 })
             }
         },
         methods: {
             getResults(page = 1) {
-                axios.get('api/users?page=' + page)
+                axios.get('api/menu?page=' + page)
                 .then(response => {
-                    this.users = response.data;
+                    this.menu = response.data;
                 });
             },
-            updateUser(){
+            updateMenu(){
+                 
                 // console.log('Editing data');
                 this.$Progress.start();
-                this.form.put('api/users/'+this.form.id)
+                this.form.put('api/menu/'+this.form.id)
                 .then(() => {
                     // success
-                    $('#addNew').modal('hide');
+                    $('#adNew').modal('hide');
                     Swal.fire(
                         'Updated!',
                         'Information has been updated.',
@@ -149,18 +140,62 @@
                     this.$Progress.fail();
                 });
             },
-              editModal(user){
+
+
+               updateMenuOne(id){
+                alert('One'+this.form.id);
+                // console.log('Editing data');
+                this.$Progress.start();
+                this.form.get('api/isActiveMenu/'+this.form.id)
+                .then(() => {
+                    // success
+                    $('#adNew').modal('hide');
+                    Swal.fire(
+                        'Updated!',
+                        'Status has been updated.',
+                        'success'
+                    )
+                    this.$Progress.finish();
+                    Fire.$emit('AfterCreate');
+                })
+                .catch(() => {
+                    this.$Progress.fail();
+                });
+            },
+               updateMenuZero(id){
+                alert('Zero'+this.form.id);
+                console.log('Editing data');
+                this.$Progress.start();
+                this.form.get('api/isDeActiveMenu/'+this.form.id)
+                .then(() => {
+                    // success
+                    $('#adNew').modal('hide');
+                    Swal.fire(
+                        'Updated!',
+                        'Status has been updated.',
+                        'success'
+                    )
+                    this.$Progress.finish();
+                    Fire.$emit('AfterCreate');
+                })
+                .catch(() => {
+                    this.$Progress.fail();
+                });
+            },
+              editModal(menu){
+                alert('msg'+this.form.id);
                 this.editmode = true;
                 this.form.reset();
-                 $('#addNew').modal('show');
-                 this.form.fill(user);
+                 $('#adNew').modal('show');
+                 this.form.fill(menu);
             },
             newModal(){
+ 
                 this.editmode = false;
                 this.form.reset();
-                 $('#addNew').modal('show');
+                 $('#adNew').modal('show');
             },
-            deleteUser(id){
+            deleteMenu(id){
                 Swal.fire({
                     title: 'Are you sure?',
                     text: "You won't be able to revert this!",
@@ -172,7 +207,7 @@
                     }).then((result) => {
                         // Send request to the server
                          if (result.value) {
-                                this.form.delete('api/users/'+id).then(()=>{
+                                this.form.delete('api/menu/'+id).then(()=>{
                                         Swal.fire(
                                         'Deleted!',
                                         'Your file has been deleted.',
@@ -185,20 +220,22 @@
                          }
                     })
             },
-                loadUsers(){
-                    axios.get("api/users").then(({ data }) => (this.users = data));
+            loadMenus(){
+                    axios.get("api/menu").then(({ data }) => (this.menus = data));
+
             },
-                createUser(){
+                createMenu(){
                 this.$Progress.start();
-                this.form.post('api/users')
+
+                this.form.post('api/menu')
                 .then(()=>{
                     Fire.$emit('AfterCreate');
 
-                    $('#addNew').modal('hide')
+                    $('#adNew').modal('hide')
 
                    Toast.fire({
                         type: 'success',
-                        title: 'User Created in successfully'
+                        title: 'Menu Created in successfully'
                     })
 
                     this.$Progress.finish();
@@ -210,19 +247,19 @@
         created() {
             Fire.$on('searching',() => {
                 let query = this.$parent.search;
-                axios.get('api/findUser?q= ' + query)
+                axios.get('api/findMenu?q= ' + query)
                 .then((data)=> {
-                    this.users = data.data
+                    this.menus = data.data
                 })
                 .catch(() => {
 
                 })
             })
-            this.loadUsers();
+            this.loadMenus();
             Fire.$on('AfterCreate',() => {
-                this.loadUsers();
+                this.loadMenus();
             });
-            // setInterval(() => this.loadUsers(), 3000);
+            // setInterval(() => this.loadmenu(), 3000);
         }
     }
 

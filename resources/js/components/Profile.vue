@@ -20,8 +20,7 @@
                     <h5 class="widget-user-desc">{{this.form.type}}</h5>
                 </div>
                 <div class="widget-user-image">   
-                    <!-- :src="getProfilePhoto()" -->
-                    <img class="img-circle" src="{{ asset('images/profile.png') }}"  alt="User Avatar">
+                    <img class="img-circle" :src="getProfilePhoto()" alt="User Avatar">
                 </div>
                 <div class="card-footer">
                     <div class="row">
@@ -77,7 +76,7 @@
                                 <div class="form-group">
                                      
                                     <div class="col-sm-12">
-                                    <input type="" v-model="form.name" class="form-control" id="inputName" placeholder="Name" :class="{ 'is-invalid': form.errors.has('name') }">
+                                    <input type="text" v-model="form.name" class="form-control" id="inputName" placeholder="Name" :class="{ 'is-invalid': form.errors.has('name') }">
                                      <has-error :form="form" field="name"></has-error>
                                     </div>
                                 </div>
@@ -114,7 +113,6 @@
                                      <has-error :form="form" field="password"></has-error>
                                     </div>
                                 </div>
-
                                 <div class="form-group">
                                     <div class="col-sm-offset-2 col-sm-12">
                                     <button @click.prevent="updateInfo" type="submit" class="btn btn-success">Update</button>
@@ -133,8 +131,6 @@
         </div>
     </div>
 </template>
-
-
 
 <script>
     export default {
@@ -195,6 +191,7 @@
         created() {
             axios.get("api/profile")
             .then(({ data }) => (this.form.fill(data)));
+
         }
     }
 </script>

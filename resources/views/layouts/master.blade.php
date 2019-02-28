@@ -3,7 +3,7 @@
 .searchbox
 {
   display: flex;
-  background-color: #2C80D3;
+  background-color: #2B85C1;
   padding: 10px;
   border-radius: 10px;
 }
@@ -174,12 +174,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
             </router-link>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link">
+            <router-link to="/menu" tag="a" class="nav-link" active-class="active" exact>
               <i class="fas fa-home nav-icon cyan"></i>
               <p>
                 Home/Menu
               </p>
-            </a>
+            </router-link>
           </li>
             <!-- <ul class="nav nav-sidebar"> -->
               <li class="nav-item">

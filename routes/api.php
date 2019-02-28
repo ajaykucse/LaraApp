@@ -18,6 +18,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::apiResources(['users' => 'API\UserController']);
+Route::apiResources(['menu' => 'API\MenuController']);
+Route::get('findMenu', 'API\MenuController@search');
+Route::put('isActiveMenu', 'API\MenuController@statusOne'); 
+Route::put('isDeActiveMenu', 'API\MenuController@statusZero');
 Route::get('profile', 'API\UserController@profile');
 Route::get('findUser', 'API\UserController@search');
 Route::get('profile', 'API\UserController@updateProfile');

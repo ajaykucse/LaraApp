@@ -18,7 +18,7 @@ class UserController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('api');
+        $this->middleware('auth:api');
     }
 
     /**
@@ -28,7 +28,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return  User::where('id','<>',auth()->id())->latest()->paginate(5);
+        return  User::where('id','<>',auth()->id())->latest()->paginate(10);
         // if (\Gate::allows('isAdmin') || \Gate::allows('isAuthor')) {
         //     return User::latest()->paginate(5);
         // }
