@@ -1,0 +1,176 @@
+﻿@model IEnumerable<DataAccessLayer.MasterSetup.AccountGroupViewModel>
+<input type="hidden" name="txtShowModal" id="txtShowModal" value="@ViewBag._ShowModal" />
+<div class="panel-body">
+    <div class="table-responsive">
+        <table class="table table-bordered xxx" title="Sales Register">
+            <thead>
+                <tr>
+                    <th style="min-width:150px;">Group</th>
+                    <th style="min-width:150px;">Short Name</th>
+                    <th style="min-width:150px;">PrimaryGrp</th>
+                    <th style="min-width:150px;">Schedule</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="min-width:150px;">@item.AccountGrpDesc</td>
+                            <td style="min-width:150px;">@item.AccountGrpShortName</td>
+                            <td style="min-width:150px;">@item.PrimaryGrp</td>
+                            <td style="min-width:150px;">@item.Schedule</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="mySalesInvoiceModalPopup" role="dialog">
+    <div class="modal-dialog" style="width:550px;">
+        <div class="modal-content" style="height:400px;">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title">Sales Invoice Report<i id="loaderSalesInvoice" style="margin-top:20px; margin-left:20px; display:none;"><img src="../Images/loader.gif" /></i></h5>
+            </div>
+            <div class="modal-body" style="padding:5px;">
+                <form class="form-horizontal bordered-row" method="post" action="~/RptRegisterReport/SalesInvoiceShowData" enctype="multipart/form-data" id="FrmOption">
+                    <table class="table" id="mySalesInvoiceTable">
+                        <tr>
+                            <td style="border:none;">Date</td>
+                            <td style="border:none;">
+                                <select class="form-control valid" id="selectDate" name="selectDate">
+                                    <option value="Today">Today</option>
+                                    <option value="Yesterday">Yesterday</option>
+                                    <option value="Current Week">Current Week</option>
+                                    <option value="Last Week">Last Week</option>
+                                    <option value="Current Month">Current Month</option>
+                                    <option value="Last Month">Last Month</option>
+                                    <option value="Accounting Period" selected>Accounting Period</option>
+                                    <option value="Upto Date">Upto Date</option>
+                                    <option value="Custom Date">Custom Date</option>
+                                </select>
+                            </td>
+                            <td style="border:none;">From</td>
+                            <td style="border:none;">
+                                <div class='input-group date'>
+                                    <input type="text" value="@ViewBag.CompanyStartDate" class="form-control" id="txtFromDate" name="txtFromDate" placeholder="dd/mm/yyyy" maxlength="10" readonly />
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td style="border:none;">To</td>
+                            <td style="border:none;">
+                                <div class='input-group date'>
+                                    <input type="text" value="@ViewBag.CompanyEndDate" class="form-control" id="txtToDate" name="txtToDate" placeholder="dd/mm/yyyy" maxlength="10" readonly />
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">
+                                <label>
+                                    Report Option
+                                    <input type="hidden" name="txtLedgerCode" id="txtLedgerCode" />
+                                    <input type="hidden" name="txtSalesmanCode" id="txtSalesmanCode" />
+                                    <input type="hidden" name="txtAreaCode" id="txtAreaCode" />
+                                    <input type="hidden" name="txtProductCode" id="txtProductCode" />
+                                    <input type="hidden" name="txtProductGroupCode" id="txtProductGroupCode" />
+                                    <input type="hidden" name="txtProductSubgroupCode" id="txtProductSubgroupCode" />
+                                </label>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Date" checked> Date </label>
+                                </div>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Number"> Number </label>
+                                </div>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Customer"> Customer </label>
+                                </div>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Product"> Product </label>
+                                </div>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Product Group"> Product Group </label>
+                                </div>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Product Subgroup"> Product Subgroup </label>
+                                </div>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Master Salesman">Master Salesman </label>
+                                </div>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Bill Salesman"> Bill Salesman </label>
+                                </div>
+                                <div class="radio">
+                                    <label><input type="radio" name="radioReportOption" id="radioReportOption" value="Area"> Area </label>
+                                </div>
+
+                            </td>
+
+                            <td colspan="1">
+                                <div class="checkbox">
+                                    <label><input type="checkbox" name="chkDetails" value="Details"> Details</label>
+                                </div>
+                                <div class="checkbox">
+                                    <label><input type="checkbox" name="chkAddDescription" id="chkAddDescription" value="Description" disabled> Add Description </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label><input type="checkbox" name="chkRemarks" id="chkRemarks" value="Remarks" disabled> Remarks</label>
+                                </div>
+                                <div class="checkbox">
+                                    <label><input type="checkbox" name="chkIncludeProduct" id="chkIncludeProduct" value="IncludeProduct" disabled> Include Product</label>
+                                </div>
+                                <div class="checkbox">
+                                    <label><input type="checkbox" name="chkMiti" value="Miti"> Miti</label>
+                                </div>
+                                <div class="checkbox">
+                                    <label><input type="checkbox" name="chkDivision" value="Division" disabled> Division</label>
+                                </div>
+                                <div class="checkbox">
+                                    <label><input type="checkbox" name="chkSelectAll" id="chkSelectAll" value="All" disabled> Select All</label>
+                                </div>
+                            </td>
+                            <td colspan="2">
+                                Filter  <input type="text" value="" class="form-control  FocusControlColor" id="txtToFilter" name="txtToFilter" />
+                                <label>
+                                    Sales Type
+                                    <select class="form-control valid" id="selectSalesType" name="selectSalesType">
+                                        <option value="Cash">Cash</option>
+                                        <option value="Credit">Credit</option>
+                                        <option value="Both" selected>Both</option>
+                                    </select>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border:none;" colspan="2">&nbsp;</td>
+                            <td style="border:none; text-align:right" colspan="4">
+                                <button type="button" class="btn btn-info" id="btnOk">OK</button>
+                                <button type="button" class="btn btn-info" data-dismiss="modal">CANCEL</button>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.xxx tbody').scroll(function (e) {
+            $('.xxx thead').css("left", -$("tbody").scrollLeft());
+        });
+    });
+
+    if ($("#txtShowModal").val() === "Yes") {
+        $("#mySalesInvoiceModalPopup").modal('show');
+      //  $("#selectDate").focus();
+    }
+</script>

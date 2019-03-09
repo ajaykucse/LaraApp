@@ -1,0 +1,20 @@
+﻿
+ALTER TABLE [ERP].[GeneralLedger]  WITH CHECK ADD  CONSTRAINT [FK_GeneralLedger_Department1] FOREIGN KEY([DepartmentId2])
+REFERENCES [ERP].[Department] ([DepartmentId])
+GO
+
+ALTER TABLE [ERP].[GeneralLedger] CHECK CONSTRAINT [FK_GeneralLedger_Department1]
+GO
+
+ALTER TABLE [ERP].[GeneralLedger]  WITH CHECK ADD  CONSTRAINT [FK_GeneralLedger_Department2] FOREIGN KEY([DepartmentId3])
+REFERENCES [ERP].[Department] ([DepartmentId])
+GO
+
+ALTER TABLE [ERP].[GeneralLedger] CHECK CONSTRAINT [FK_GeneralLedger_Department2]
+GO
+
+ALTER TABLE [ERP].[GeneralLedger]  WITH CHECK ADD  CONSTRAINT [FK_GeneralLedger_Department3] FOREIGN KEY([DepartmentId4])
+REFERENCES [ERP].[Department] ([DepartmentId])
+GO
+
+ALTER TABLE [ERP].[GeneralLedger] CHECK CONSTRAINT [FK_GeneralLedger_Department3]

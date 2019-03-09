@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9C545253-DBC4-4389-B90B-981FA2FAE330}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DataAccessLayer</RootNamespace>
+    <AssemblyName>DataAccessLayer</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ARAPReport\ClsRptSalesRegister.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="Common\ClsCommon.cs" />
+    <Compile Include="Common\ClsDateMiti.cs" />
+    <Compile Include="Common\ClsFormControl.cs" />
+    <Compile Include="Common\ClsGlobal.cs" />
+    <Compile Include="Common\ClsPickList.cs" />
+    <Compile Include="Common\ClsUpdateCompany.cs" />
+    <Compile Include="Common\ClsUserMaster.cs" />
+    <Compile Include="Database.cs" />
+    <Compile Include="DataTransaction\Finance\ClsCashBankVoucher.cs" />
+    <Compile Include="DataTransaction\Finance\ClsCreditNoteVoucher.cs" />
+    <Compile Include="DataTransaction\Finance\ClsDebitNoteVoucher.cs" />
+    <Compile Include="DataTransaction\Finance\ClsJournalVouchar.cs" />
+    <Compile Include="DataTransaction\Normal Production\ClsBillOfMaterial.cs" />
+    <Compile Include="DataTransaction\Purchase\ClsPurchaseChallanReturn.cs" />
+    <Compile Include="DataTransaction\Purchase\ClsPurchaseChallan.cs" />
+    <Compile Include="DataTransaction\Purchase\ClsPurchaseIndent.cs" />
+    <Compile Include="DataTransaction\Purchase\clsPurchaseInvoice.cs" />
+    <Compile Include="DataTransaction\Purchase\ClsPurchaseOrder.cs" />
+    <Compile Include="DataTransaction\Purchase\ClsPurchaseQuotation.cs" />
+    <Compile Include="DataTransaction\Purchase\clsPurchaseReturn.cs" />
+    <Compile Include="DataTransaction\Sales\ClsRestaurantBilling.cs" />
+    <Compile Include="DataTransaction\Sales\ClsSalesChallan.cs" />
+    <Compile Include="DataTransaction\Sales\ClsSalesChallanReturn.cs" />
+    <Compile Include="DataTransaction\Sales\ClsSalesInvoice.cs" />
+    <Compile Include="DataTransaction\Sales\ClsSalesOrder.cs" />
+    <Compile Include="DataTransaction\Sales\ClsSalesQuotation.cs" />
+    <Compile Include="DataTransaction\Sales\ClsSalesReturn.cs" />
+    <Compile Include="DLLPrinting\DllInvoicePrint.cs" />
+    <Compile Include="DLLPrinting\NumberToWord.cs" />
+    <Compile Include="DLLPrinting\RawPrinterHelper.cs" />
+    <Compile Include="DLLPrinting\StringExtensions.cs" />
+    <Compile Include="FinanceReport\ClsRptAllLedger.cs" />
+    <Compile Include="Interface\ARAPReport\IRptSalesRegister.cs" />
+    <Compile Include="Interface\Common\ICommon.cs" />
+    <Compile Include="Interface\Common\IDateMiti.cs" />
+    <Compile Include="Interface\Common\IUserMaster.cs" />
+    <Compile Include="Interface\DataTransaction\Finance\ICashBankVoucher.cs" />
+    <Compile Include="Interface\DataTransaction\Finance\ICreditNoteVoucher.cs" />
+    <Compile Include="Interface\DataTransaction\Finance\IDebitNoteVoucher.cs" />
+    <Compile Include="Interface\DataTransaction\Finance\IJournalVoucher.cs" />
+    <Compile Include="Interface\DataTransaction\Normal Production\IBillOfMaterial.cs" />
+    <Compile Include="Interface\DataTransaction\Purchase\IPurchaseChallan.cs" />
+    <Compile Include="Interface\DataTransaction\Purchase\IPurchaseChallanReturn.cs" />
+    <Compile Include="Interface\DataTransaction\Purchase\IPurchaseIndent.cs" />
+    <Compile Include="Interface\DataTransaction\Purchase\IPurchaseInvoice.cs" />
+    <Compile Include="Interface\DataTransaction\Purchase\IPurchaseOrder.cs" />
+    <Compile Include="Interface\DataTransaction\Purchase\IPurchaseQuotation.cs" />
+    <Compile Include="Interface\DataTransaction\Purchase\IPurchaseReturn.cs" />
+    <Compile Include="Interface\DataTransaction\Sales\IRestaurantBilling.cs" />
+    <Compile Include="Interface\DataTransaction\Sales\ISalesChallanReturn.cs" />
+    <Compile Include="Interface\DataTransaction\Sales\ISalesChallan.cs" />
+    <Compile Include="Interface\DataTransaction\Sales\ISalesInvoice.cs" />
+    <Compile Include="Interface\DataTransaction\Sales\ISalesOrder.cs" />
+    <Compile Include="Interface\DataTransaction\Sales\ISalesQuotation.cs" />
+    <Compile Include="Interface\DataTransaction\Sales\ISalesReturns.cs" />
+    <Compile Include="Interface\FinanceReport\IRptAllLedger.cs" />
+    <Compile Include="Interface\MasterSetup\IAccountGroup.cs" />
+    <Compile Include="Interface\MasterSetup\IAccountSubGroup.cs" />
+    <Compile Include="Interface\MasterSetup\IArea.cs" />
+    <Compile Include="Interface\MasterSetup\ICostCenter.cs" />
+    <Compile Include="Interface\MasterSetup\ICounter.cs" />
+    <Compile Include="Interface\MasterSetup\ICurrency.cs" />
+    <Compile Include="Interface\MasterSetup\IDepartment.cs" />
+    <Compile Include="Interface\MasterSetup\IFloor.cs" />
+    <Compile Include="Interface\MasterSetup\IGeneralLedger.cs" />
+    <Compile Include="Interface\MasterSetup\IGodown.cs" />
+    <Compile Include="Interface\MasterSetup\IKOTAssign.cs" />
+    <Compile Include="Interface\MasterSetup\IMainArea.cs" />
+    <Compile Include="Interface\MasterSetup\IMainSalesman.cs" />
+    <Compile Include="Interface\MasterSetup\INarration.cs" />
+    <Compile Include="Interface\MasterSetup\IProduct.cs" />
+    <Compile Include="Interface\MasterSetup\IProductGroup.cs" />
+    <Compile Include="Interface\MasterSetup\IProductScheme.cs" />
+    <Compile Include="Interface\MasterSetup\IProductSubGroup.cs" />
+    <Compile Include="Interface\MasterSetup\IProductUnit.cs" />
+    <Compile Include="Interface\MasterSetup\IPurchaseBillingTerm.cs" />
+    <Compile Include="Interface\MasterSetup\ISalesBillingTerm.cs" />
+    <Compile Include="Interface\MasterSetup\ISalesman.cs" />
+    <Compile Include="Interface\MasterSetup\ISubledger.cs" />
+    <Compile Include="Interface\MasterSetup\ITableMaster.cs" />
+    <Compile Include="Interface\MasterSetup\IUdfMaster.cs" />
+    <Compile Include="Interface\SystemSetting\IDocPrintSetting.cs" />
+    <Compile Include="Interface\SystemSetting\IEntryControl.cs" />
+    <Compile Include="Interface\SystemSetting\IUserRestriction.cs" />
+    <Compile Include="MasterSetup\ClsAccountGroup.cs" />
+    <Compile Include="MasterSetup\ClsAccountSubGroup.cs" />
+    <Compile Include="MasterSetup\ClsArea.cs" />
+    <Compile Include="MasterSetup\ClsCostCenter.cs" />
+    <Compile Include="MasterSetup\ClsCounter.cs" />
+    <Compile Include="MasterSetup\ClsCurrency.cs" />
+    <Compile Include="MasterSetup\ClsDepartment.cs" />
+    <Compile Include="MasterSetup\ClsFloor.cs" />
+    <Compile Include="MasterSetup\ClsGeneralLedger.cs" />
+    <Compile Include="MasterSetup\ClsGodown.cs" />
+    <Compile Include="MasterSetup\ClsKOTAssign.cs" />
+    <Compile Include="MasterSetup\ClsMainArea.cs" />
+    <Compile Include="MasterSetup\ClsMainSalesman.cs" />
+    <Compile Include="MasterSetup\ClsNarration.cs" />
+    <Compile Include="MasterSetup\ClsProduct.cs" />
+    <Compile Include="MasterSetup\ClsProductGroup.cs" />
+    <Compile Include="MasterSetup\ClsProductScheme.cs" />
+    <Compile Include="MasterSetup\ClsProductSubGroup.cs" />
+    <Compile Include="MasterSetup\ClsProductUnit.cs" />
+    <Compile Include="MasterSetup\ClsPurchaseBillingTerm.cs" />
+    <Compile Include="MasterSetup\ClsSalesBillingTerm.cs" />
+    <Compile Include="MasterSetup\ClsSalesman.cs" />
+    <Compile Include="MasterSetup\ClsSubledger.cs" />
+    <Compile Include="MasterSetup\ClsTable.cs" />
+    <Compile Include="MasterSetup\ClsUdfMaster.cs" />
+    <Compile Include="Opening\ClsLedgerOpening.cs" />
+    <Compile Include="Opening\ClsProductOpening.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SystemSetting\ClsBranch.cs" />
+    <Compile Include="SystemSetting\ClsCompany.cs" />
+    <Compile Include="SystemSetting\ClsCompanyUnit.cs" />
+    <Compile Include="SystemSetting\ClsDocPrintSetting.cs" />
+    <Compile Include="SystemSetting\ClsDocumentNumbering.cs" />
+    <Compile Include="SystemSetting\ClsEntryControl.cs" />
+    <Compile Include="SystemSetting\ClsMenuPermissionGroup.cs" />
+    <Compile Include="SystemSetting\ClsMenuPremission.cs" />
+    <Compile Include="SystemSetting\ClsUserRestriction.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DataManage\" />
+    <Folder Include="StockReport\" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="Microsoft.Office.Core">
+      <Guid>{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>7</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="Microsoft.Office.Interop.Excel">
+      <Guid>{00020813-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>8</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="VBIDE">
+      <Guid>{0002E157-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>5</VersionMajor>
+      <VersionMinor>3</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ActiveAccess\ActiveDataAccess.vbproj">
+      <Project>{b9043253-47ff-443b-884d-d49eb28d5bba}</Project>
+      <Name>ActiveDataAccess</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

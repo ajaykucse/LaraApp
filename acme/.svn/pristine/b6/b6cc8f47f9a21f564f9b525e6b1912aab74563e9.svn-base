@@ -1,0 +1,359 @@
+﻿namespace acmedesktop.DataTransaction
+{
+    partial class FrmCashPartyInfo
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.BtnCancel = new System.Windows.Forms.Button();
+            this.BtnOK = new System.Windows.Forms.Button();
+            this.lblChequeDate = new System.Windows.Forms.Label();
+            this.BtnPartySearch = new System.Windows.Forms.Button();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.lblEmail = new System.Windows.Forms.Label();
+            this.lblTelMobile = new System.Windows.Forms.Label();
+            this.lblAddress = new System.Windows.Forms.Label();
+            this.lblCty = new System.Windows.Forms.Label();
+            this.lblContactPerson = new System.Windows.Forms.Label();
+            this.lblChequeNo = new System.Windows.Forms.Label();
+            this.lblVatPanNo = new System.Windows.Forms.Label();
+            this.lblPartyName = new System.Windows.Forms.Label();
+            this.TxtChequeDate = new acmedesktop.MyInputControls.MyMaskedTextBox();
+            this.TxtPartyEmail = new acmedesktop.MyInputControls.MyTextBox();
+            this.TxtPartyMobileNo = new acmedesktop.MyInputControls.MyTextBox();
+            this.TxtPartyCity = new acmedesktop.MyInputControls.MyTextBox();
+            this.TxtPartyAddress = new acmedesktop.MyInputControls.MyTextBox();
+            this.TxtContactPerson = new acmedesktop.MyInputControls.MyTextBox();
+            this.TxtPartyVatPanNo = new acmedesktop.MyInputControls.MyTextBox();
+            this.TxtChequeNo = new acmedesktop.MyInputControls.MyTextBox();
+            this.TxtPartyName = new acmedesktop.MyInputControls.MyTextBox();
+            this.SuspendLayout();
+            // 
+            // BtnCancel
+            // 
+            this.BtnCancel.Location = new System.Drawing.Point(397, 250);
+            this.BtnCancel.Name = "BtnCancel";
+            this.BtnCancel.Size = new System.Drawing.Size(56, 26);
+            this.BtnCancel.TabIndex = 10;
+            this.BtnCancel.Text = "&Cancel";
+            this.BtnCancel.UseVisualStyleBackColor = true;
+            this.BtnCancel.Click += new System.EventHandler(this.BtnCancel_Click);
+            // 
+            // BtnOK
+            // 
+            this.BtnOK.Location = new System.Drawing.Point(349, 250);
+            this.BtnOK.Name = "BtnOK";
+            this.BtnOK.Size = new System.Drawing.Size(44, 26);
+            this.BtnOK.TabIndex = 9;
+            this.BtnOK.Text = "&Ok";
+            this.BtnOK.UseVisualStyleBackColor = true;
+            this.BtnOK.Click += new System.EventHandler(this.BtnOK_Click);
+            // 
+            // lblChequeDate
+            // 
+            this.lblChequeDate.AutoSize = true;
+            this.lblChequeDate.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblChequeDate.Location = new System.Drawing.Point(297, 39);
+            this.lblChequeDate.Name = "lblChequeDate";
+            this.lblChequeDate.Size = new System.Drawing.Size(80, 15);
+            this.lblChequeDate.TabIndex = 58;
+            this.lblChequeDate.Text = "Cheque Date";
+            // 
+            // BtnPartySearch
+            // 
+            this.BtnPartySearch.CausesValidation = false;
+            this.BtnPartySearch.Font = new System.Drawing.Font("Arial", 9F);
+            this.BtnPartySearch.Image = global::acmedesktop.Properties.Resources.search_16;
+            this.BtnPartySearch.Location = new System.Drawing.Point(422, 6);
+            this.BtnPartySearch.Name = "BtnPartySearch";
+            this.BtnPartySearch.Size = new System.Drawing.Size(33, 24);
+            this.BtnPartySearch.TabIndex = 50;
+            this.BtnPartySearch.TabStop = false;
+            this.BtnPartySearch.UseVisualStyleBackColor = true;
+            this.BtnPartySearch.Click += new System.EventHandler(this.BtnPartySearch_Click);
+            // 
+            // panel1
+            // 
+            this.panel1.BackColor = System.Drawing.Color.White;
+            this.panel1.Location = new System.Drawing.Point(1, 242);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(460, 1);
+            this.panel1.TabIndex = 48;
+            // 
+            // lblEmail
+            // 
+            this.lblEmail.AutoSize = true;
+            this.lblEmail.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblEmail.Location = new System.Drawing.Point(17, 210);
+            this.lblEmail.Name = "lblEmail";
+            this.lblEmail.Size = new System.Drawing.Size(39, 15);
+            this.lblEmail.TabIndex = 47;
+            this.lblEmail.Text = "Email";
+            // 
+            // lblTelMobile
+            // 
+            this.lblTelMobile.AutoSize = true;
+            this.lblTelMobile.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTelMobile.Location = new System.Drawing.Point(17, 181);
+            this.lblTelMobile.Name = "lblTelMobile";
+            this.lblTelMobile.Size = new System.Drawing.Size(71, 15);
+            this.lblTelMobile.TabIndex = 46;
+            this.lblTelMobile.Text = "Tel. / Mobile";
+            // 
+            // lblAddress
+            // 
+            this.lblAddress.AutoSize = true;
+            this.lblAddress.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblAddress.Location = new System.Drawing.Point(17, 123);
+            this.lblAddress.Name = "lblAddress";
+            this.lblAddress.Size = new System.Drawing.Size(53, 15);
+            this.lblAddress.TabIndex = 44;
+            this.lblAddress.Text = "Address";
+            // 
+            // lblCty
+            // 
+            this.lblCty.AutoSize = true;
+            this.lblCty.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblCty.Location = new System.Drawing.Point(17, 152);
+            this.lblCty.Name = "lblCty";
+            this.lblCty.Size = new System.Drawing.Size(27, 15);
+            this.lblCty.TabIndex = 45;
+            this.lblCty.Text = "City";
+            // 
+            // lblContactPerson
+            // 
+            this.lblContactPerson.AutoSize = true;
+            this.lblContactPerson.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblContactPerson.Location = new System.Drawing.Point(14, 94);
+            this.lblContactPerson.Name = "lblContactPerson";
+            this.lblContactPerson.Size = new System.Drawing.Size(92, 15);
+            this.lblContactPerson.TabIndex = 43;
+            this.lblContactPerson.Text = "Contact Person";
+            // 
+            // lblChequeNo
+            // 
+            this.lblChequeNo.AutoSize = true;
+            this.lblChequeNo.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblChequeNo.Location = new System.Drawing.Point(18, 36);
+            this.lblChequeNo.Name = "lblChequeNo";
+            this.lblChequeNo.Size = new System.Drawing.Size(70, 15);
+            this.lblChequeNo.TabIndex = 41;
+            this.lblChequeNo.Text = "Cheque No";
+            // 
+            // lblVatPanNo
+            // 
+            this.lblVatPanNo.AutoSize = true;
+            this.lblVatPanNo.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblVatPanNo.Location = new System.Drawing.Point(17, 65);
+            this.lblVatPanNo.Name = "lblVatPanNo";
+            this.lblVatPanNo.Size = new System.Drawing.Size(73, 15);
+            this.lblVatPanNo.TabIndex = 42;
+            this.lblVatPanNo.Text = "Vat / Pan No";
+            // 
+            // lblPartyName
+            // 
+            this.lblPartyName.AutoSize = true;
+            this.lblPartyName.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblPartyName.Location = new System.Drawing.Point(18, 7);
+            this.lblPartyName.Name = "lblPartyName";
+            this.lblPartyName.Size = new System.Drawing.Size(71, 15);
+            this.lblPartyName.TabIndex = 40;
+            this.lblPartyName.Text = "Party Name";
+            // 
+            // TxtChequeDate
+            // 
+            this.TxtChequeDate.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtChequeDate.Enabled = false;
+            this.TxtChequeDate.InsertKeyMode = System.Windows.Forms.InsertKeyMode.Overwrite;
+            this.TxtChequeDate.Location = new System.Drawing.Point(383, 36);
+            this.TxtChequeDate.Mask = "99/99/9999";
+            this.TxtChequeDate.Name = "TxtChequeDate";
+            this.TxtChequeDate.Size = new System.Drawing.Size(70, 20);
+            this.TxtChequeDate.TabIndex = 2;
+            this.TxtChequeDate.Validating += new System.ComponentModel.CancelEventHandler(this.TxtChequeDate_Validating);
+            // 
+            // TxtPartyEmail
+            // 
+            this.TxtPartyEmail.BackColor = System.Drawing.Color.White;
+            this.TxtPartyEmail.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtPartyEmail.Font = new System.Drawing.Font("Arial", 9F);
+            this.TxtPartyEmail.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.TxtPartyEmail.Location = new System.Drawing.Point(112, 210);
+            this.TxtPartyEmail.Name = "TxtPartyEmail";
+            this.TxtPartyEmail.Size = new System.Drawing.Size(341, 21);
+            this.TxtPartyEmail.TabIndex = 8;
+            // 
+            // TxtPartyMobileNo
+            // 
+            this.TxtPartyMobileNo.BackColor = System.Drawing.Color.White;
+            this.TxtPartyMobileNo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtPartyMobileNo.Font = new System.Drawing.Font("Arial", 9F);
+            this.TxtPartyMobileNo.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.TxtPartyMobileNo.Location = new System.Drawing.Point(112, 181);
+            this.TxtPartyMobileNo.Name = "TxtPartyMobileNo";
+            this.TxtPartyMobileNo.Size = new System.Drawing.Size(341, 21);
+            this.TxtPartyMobileNo.TabIndex = 7;
+            // 
+            // TxtPartyCity
+            // 
+            this.TxtPartyCity.BackColor = System.Drawing.Color.White;
+            this.TxtPartyCity.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtPartyCity.Font = new System.Drawing.Font("Arial", 9F);
+            this.TxtPartyCity.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.TxtPartyCity.Location = new System.Drawing.Point(112, 152);
+            this.TxtPartyCity.Name = "TxtPartyCity";
+            this.TxtPartyCity.Size = new System.Drawing.Size(341, 21);
+            this.TxtPartyCity.TabIndex = 6;
+            // 
+            // TxtPartyAddress
+            // 
+            this.TxtPartyAddress.BackColor = System.Drawing.Color.White;
+            this.TxtPartyAddress.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtPartyAddress.Font = new System.Drawing.Font("Arial", 9F);
+            this.TxtPartyAddress.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.TxtPartyAddress.Location = new System.Drawing.Point(112, 123);
+            this.TxtPartyAddress.Name = "TxtPartyAddress";
+            this.TxtPartyAddress.Size = new System.Drawing.Size(341, 21);
+            this.TxtPartyAddress.TabIndex = 5;
+            // 
+            // TxtContactPerson
+            // 
+            this.TxtContactPerson.BackColor = System.Drawing.Color.White;
+            this.TxtContactPerson.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtContactPerson.Font = new System.Drawing.Font("Arial", 9F);
+            this.TxtContactPerson.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.TxtContactPerson.Location = new System.Drawing.Point(112, 94);
+            this.TxtContactPerson.Name = "TxtContactPerson";
+            this.TxtContactPerson.Size = new System.Drawing.Size(341, 21);
+            this.TxtContactPerson.TabIndex = 4;
+            // 
+            // TxtPartyVatPanNo
+            // 
+            this.TxtPartyVatPanNo.BackColor = System.Drawing.Color.White;
+            this.TxtPartyVatPanNo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtPartyVatPanNo.Font = new System.Drawing.Font("Arial", 9F);
+            this.TxtPartyVatPanNo.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.TxtPartyVatPanNo.Location = new System.Drawing.Point(112, 65);
+            this.TxtPartyVatPanNo.Name = "TxtPartyVatPanNo";
+            this.TxtPartyVatPanNo.Size = new System.Drawing.Size(178, 21);
+            this.TxtPartyVatPanNo.TabIndex = 3;
+            // 
+            // TxtChequeNo
+            // 
+            this.TxtChequeNo.BackColor = System.Drawing.Color.White;
+            this.TxtChequeNo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtChequeNo.Font = new System.Drawing.Font("Arial", 9F);
+            this.TxtChequeNo.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.TxtChequeNo.Location = new System.Drawing.Point(112, 36);
+            this.TxtChequeNo.Name = "TxtChequeNo";
+            this.TxtChequeNo.Size = new System.Drawing.Size(178, 21);
+            this.TxtChequeNo.TabIndex = 1;
+            this.TxtChequeNo.Validating += new System.ComponentModel.CancelEventHandler(this.TxtChequeNo_Validating);
+            // 
+            // TxtPartyName
+            // 
+            this.TxtPartyName.BackColor = System.Drawing.Color.White;
+            this.TxtPartyName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtPartyName.Font = new System.Drawing.Font("Arial", 9F);
+            this.TxtPartyName.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.TxtPartyName.Location = new System.Drawing.Point(112, 7);
+            this.TxtPartyName.Name = "TxtPartyName";
+            this.TxtPartyName.Size = new System.Drawing.Size(310, 21);
+            this.TxtPartyName.TabIndex = 0;
+            this.TxtPartyName.Tag = "0";
+            this.TxtPartyName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TxtPartyName_KeyDown);
+            this.TxtPartyName.Validating += new System.ComponentModel.CancelEventHandler(this.TxtPartyName_Validating);
+            // 
+            // FrmCashPartyInfo
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(156)))), ((int)(((byte)(196)))), ((int)(((byte)(197)))));
+            this.ClientSize = new System.Drawing.Size(462, 282);
+            this.Controls.Add(this.BtnCancel);
+            this.Controls.Add(this.BtnOK);
+            this.Controls.Add(this.TxtChequeDate);
+            this.Controls.Add(this.lblChequeDate);
+            this.Controls.Add(this.TxtPartyEmail);
+            this.Controls.Add(this.TxtPartyMobileNo);
+            this.Controls.Add(this.TxtPartyCity);
+            this.Controls.Add(this.TxtPartyAddress);
+            this.Controls.Add(this.TxtContactPerson);
+            this.Controls.Add(this.TxtPartyVatPanNo);
+            this.Controls.Add(this.TxtChequeNo);
+            this.Controls.Add(this.TxtPartyName);
+            this.Controls.Add(this.BtnPartySearch);
+            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.lblEmail);
+            this.Controls.Add(this.lblTelMobile);
+            this.Controls.Add(this.lblAddress);
+            this.Controls.Add(this.lblCty);
+            this.Controls.Add(this.lblContactPerson);
+            this.Controls.Add(this.lblChequeNo);
+            this.Controls.Add(this.lblVatPanNo);
+            this.Controls.Add(this.lblPartyName);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.KeyPreview = true;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Name = "FrmCashPartyInfo";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Customer Info";
+            this.Load += new System.EventHandler(this.FrmCashPartyInfo_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FrmCashPartyInfo_KeyDown);
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Button BtnCancel;
+        private System.Windows.Forms.Button BtnOK;
+        private MyInputControls.MyMaskedTextBox TxtChequeDate;
+        private System.Windows.Forms.Label lblChequeDate;
+        private MyInputControls.MyTextBox TxtPartyEmail;
+        private MyInputControls.MyTextBox TxtPartyMobileNo;
+        private MyInputControls.MyTextBox TxtPartyCity;
+        private MyInputControls.MyTextBox TxtPartyAddress;
+        private MyInputControls.MyTextBox TxtContactPerson;
+        private MyInputControls.MyTextBox TxtPartyVatPanNo;
+        private MyInputControls.MyTextBox TxtChequeNo;
+        private System.Windows.Forms.Button BtnPartySearch;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label lblEmail;
+        private System.Windows.Forms.Label lblTelMobile;
+        private System.Windows.Forms.Label lblAddress;
+        private System.Windows.Forms.Label lblCty;
+        private System.Windows.Forms.Label lblContactPerson;
+        private System.Windows.Forms.Label lblChequeNo;
+        private System.Windows.Forms.Label lblVatPanNo;
+        private System.Windows.Forms.Label lblPartyName;
+        private MyInputControls.MyTextBox TxtPartyName;
+    }
+}

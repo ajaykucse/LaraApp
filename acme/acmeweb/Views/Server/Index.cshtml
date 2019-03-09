@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link rel="shortcut icon" type="image/x-icon" href="../Images/acmelogo.ico" />
+    <meta name="description" content="The acme Online ERP Solution for your businesses. You can get Dashboard,Finance,Inventory,Accounting,Purchase and Sales management and many more modules and features.">
+    <meta name="keywords" content="Accounting software in Nepal,Best Accounting software,Accounting software,Online Accounting software,ERP,ERP in Nepal, Best ERP in nepal,Dashboard,Finance,Inventory,Accounting,Purchase and Sales management">
+    <title>ACME|Sever Connection</title>
+    <script type='text/javascript' src='~/Scripts/jquery-3.3.1.min.js'></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="https://daneden.github.io/animate.css/animate.min.css">
+    <style type="text/css">
+
+        @@font-face {
+            font-family: 'audiowideregular';
+            src: url('/fonts/audiowide-regular.woff2') format('woff2'), url('/fonts/audiowide-regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Inter UI', sans-serif;
+            margin: 0;
+            padding: 0px;
+        }
+
+        .page {
+            background: rgba(147,206,222,1);
+            background: -moz-linear-gradient(-45deg, rgba(147,206,222,1) 0%, rgba(36,158,179,1) 16%, rgba(117,189,209,1) 41%, rgba(36,158,179,1) 65%, rgba(73,165,191,1) 100%);
+            background: -webkit-gradient(left top, right bottom, color-stop(0%, rgba(147,206,222,1)), color-stop(16%, rgba(36,158,179,1)), color-stop(41%, rgba(117,189,209,1)), color-stop(65%, rgba(36,158,179,1)), color-stop(100%, rgba(73,165,191,1)));
+            background: -webkit-linear-gradient(-45deg, rgba(147,206,222,1) 0%, rgba(36,158,179,1) 16%, rgba(117,189,209,1) 41%, rgba(36,158,179,1) 65%, rgba(73,165,191,1) 100%);
+            background: -o-linear-gradient(-45deg, rgba(147,206,222,1) 0%, rgba(36,158,179,1) 16%, rgba(117,189,209,1) 41%, rgba(36,158,179,1) 65%, rgba(73,165,191,1) 100%);
+            background: -ms-linear-gradient(-45deg, rgba(147,206,222,1) 0%, rgba(36,158,179,1) 16%, rgba(117,189,209,1) 41%, rgba(36,158,179,1) 65%, rgba(73,165,191,1) 100%);
+            background: linear-gradient(135deg, rgba(147,206,222,1) 0%, rgba(36,158,179,1) 16%, rgba(117,189,209,1) 41%, rgba(36,158,179,1) 65%, rgba(73,165,191,1) 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#93cede', endColorstr='#49a5bf', GradientType=1 );
+            display: flex;
+            flex-direction: column;
+            height: calc(100%);
+            position: absolute;
+            place-content: center;
+            width: calc(100%);
+        }
+
+        @@media (max-width: 767px) {
+            .page {
+                height: auto;
+                margin-bottom: 20px;
+                padding-bottom: 20px;
+            }
+        }
+
+        .container {
+            display: flex;
+            height: 320px;
+            margin: 0 auto;
+            width: 640px;
+        }
+
+        @@media (max-width: 767px) {
+            .container {
+                flex-direction: column;
+                height: 630px;
+                width: 320px;
+            }
+        }
+
+        .left {
+            background: white;
+            height: calc(100% - 40px);
+            top: 20px;
+            position: relative;
+            width: 50%;
+            -webkit-border-top-left-radius: 5px;
+            -webkit-border-bottom-left-radius: 5px;
+            -moz-border-radius-topleft: 5px;
+            -moz-border-radius-bottomleft: 5px;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        @@media (max-width: 767px) {
+            .left {
+                height: 100%;
+                left: 20px;
+                width: calc(100% - 40px);
+                max-height: 270px;
+            }
+        }
+
+        .login {
+            font-size: 16px;
+            margin: 30px 40px 0px 30px;
+            font-family: 'Open Sans';
+            line-height: normal;
+        }
+
+        .eula {
+            color: #999;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0px 40px 40px 30px;
+            text-align: justify;
+        }
+
+        .right {
+            background: #474A59;
+            box-shadow: 0px 0px 20px 5px rgba(0,0,0,0.22);
+            color: #F1F1F2;
+            position: relative;
+            width: 50%;
+            -webkit-border-top-right-radius: 5px;
+            -webkit-border-bottom-right-radius: 5px;
+            -moz-border-radius-topright: 5px;
+            -moz-border-radius-bottomright: 5px;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        @@media (max-width: 767px) {
+            .right {
+                flex-shrink: 0;
+                height: 100%;
+                width: 100%;
+                max-height: 350px;
+            }
+        }
+
+        .form {
+            padding: 40px;
+            width: 75%;
+            position: absolute;
+        }
+
+        label {
+            color: #c2c2c5;
+            display: block;
+            font-size: 14px;
+            height: 16px;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input {
+            border: 0;
+            color: #474A59;
+            caret-color: #762d25;
+            height: 20px;
+            padding: 5px;
+            outline: none !important;
+            width: 100%;
+        }
+
+            input::-moz-focus-inner {
+                border: 0;
+            }
+
+        #submit {
+            color: #474A59;
+            margin-top: 40px;
+            height: 35px;
+            /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffc578+0,fb9d23+100;Orange+3D+%233 */
+            background: #ffc578; /* Old browsers */
+            background: -moz-linear-gradient(top, #ffc578 0%, #fb9d23 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(top, #ffc578 0%,#fb9d23 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to bottom, #ffc578 0%,#fb9d23 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffc578', endColorstr='#fb9d23',GradientType=0 ); /* IE6-9 */
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="container">
+            <div class="left slideInRight animated">
+                <div class="login">Sever Connection</div>
+                <div class="eula">
+                    <p><span style="font-family: 'audiowideregular'; font-size:28px; color:#ce2d26">acme </span> v20</p>
+                    <p>The acme Online ERP Solution for your businesses. You can get Dashboard, Finance, Inventory, <strong>Accounting</strong>, Purchase and Sales management and many more modules and features...</p>
+                </div>
+            </div>
+            <div class="right pulse animated">
+                <div class="form">
+                    <form action="~/Server/ConnectToServer" method="post">
+                        @if (!string.IsNullOrEmpty(ViewData["msg"].ToString()))
+                        {
+                            <span style="margin-top: -30px;float: left;width: 100%;font-size: 12px;color: #edff00;" id="errormsg">@ViewData["msg"]</span>
+                        }
+                        <label for="email" style="margin-top:0px;">Server Name</label>
+                        <input type="text" name="txtServerName" value="@ViewData["servername"]" style="width:96%;" autocomplete="off" autofocus required>
+                        <label for="email">Server User Name</label>
+                        <input type="text" name="txtServerUserName" value="@ViewData["serverusername"]" style="width:96%;" autocomplete="off" required>
+                        <label for="password">Password</label>
+                        <input type="text" name="txtServerPassword" value="@ViewData["serverpass"]" style="width:96%;" autocomplete="off" required>
+                        <input type="submit" id="submit" value="Connect" style="margin-top:30px;">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

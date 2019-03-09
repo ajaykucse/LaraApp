@@ -1,0 +1,893 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DataAccessLayer.Common
+{
+    public class ClsPickList
+    {
+        ActiveDataAccess.ActiveDataAccess DAL;
+
+        public List<ModelPickListControl> PickListControl { get; set; }
+        public ClsPickList()
+        {
+            DAL = new ActiveDataAccess.ActiveDataAccess(Database.DBConnection);
+            PickListControl = new List<ModelPickListControl>();
+        }
+
+        public DataTable PickListTemplate(string Module, string PageName)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select * from ERP.PickListTemplate WHERE Module='" + Module + "' and PageName='" + PageName + "' and (ShowHide=1 OR PrimaryColumn=1) order by odr  ").Tables[0];
+        }
+
+        public DataTable AccountGroupList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select AccountGrpId,AccountGrpDesc,AccountGrpShortName,CASE WHEN GrpType='BS' THEN 'Balance Sheet' WHEN GrpType='PL' THEN 'Profit & Loss'WHEN GrpType='TD' THEN 'Trading' END AS GrpType, PrimaryGrp from ERP.AccountGroup ORDER BY AccountGrpDesc").Tables[0];
+        }
+
+        public DataTable AccountSubGroupList(string AccountGrpId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select AccountSubGrpId,AccountSubGrpDesc,AccountSubGrpShortName,ASG.AccountGrpId,AG.AccountGrpDesc from ERP.AccountSubGroup AS ASG INNER JOIN ERP.AccountGroup AS AG ON ASG.AccountGrpId=AG.AccountGrpId ");
+            if (!string.IsNullOrEmpty(AccountGrpId) && AccountGrpId != "0")
+                strSql.Append(" where ASG.AccountGrpId='" + AccountGrpId + "' ");
+            strSql.Append(" ORDER BY AccountSubGrpDesc ");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable GeneralLedgerList(string GlCategory, int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select distinct GL.LedgerId,GL.GlShortName,GlDesc,GlCategory, \n");
+            strSql.Append("AccountGrpDesc,AccountSubGrpDesc,SalesmanDesc,AreaDesc,PanNo,GL.[Address],GL.Address1,City,ISNULL(GL.CreditDays,0) as CreditDays \n");
+            strSql.Append("from  ERP.GeneralLedger  as GL \n");
+            strSql.Append("left outer join ERP.Salesman On Salesman.SalesmanId = GL.SalesmanId \n");
+            strSql.Append("left outer join ERP.Area on Area.AreaId = GL.AreaId \n");
+            strSql.Append("left outer join ERP.AccountGroup on AccountGroup.AccountGrpId = GL.AccountGrpId \n");
+            strSql.Append("left outer join ERP.AccountSubGroup on AccountSubGroup.AccountSubGrpId = GL.AccountSubGrpId \n");
+            strSql.Append("and AccountSubGroup.AccountGrpId = GL.AccountGrpId \n");
+            if (GlCategory != "ALL" && !string.IsNullOrEmpty(GlCategory))
+                strSql.Append("where (GlCategory IN (SELECT Value FROM fn_Splitstring('" + GlCategory + "', ','))) \n");
+            strSql.Append("order by GlDesc");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable SubLedgerListByLedgerId(int LedgerId)
+        {
+            if (LedgerId != 0)
+                return DAL.ExecuteDataset(CommandType.Text, "select SubledgerId,SubledgerDesc,SubledgerShortName,SubledgerType from ERP.SubLedger where (LedgerId='" + LedgerId + "'  OR LedgerId IS NULL) ORDER BY SubledgerDesc").Tables[0];
+            else
+                return DAL.ExecuteDataset(CommandType.Text, "select SubledgerId,SubledgerDesc,SubledgerShortName,SubledgerType from ERP.SubLedger ORDER BY SubledgerDesc").Tables[0];
+        }
+
+        public DataTable CostCenterListByLedgerId(int LedgerId)
+        {
+            if (LedgerId != 0)
+                return DAL.ExecuteDataset(CommandType.Text, "select CostCenterId,CostCenterDesc,CostCenterShortName from ERP.CostCenter where LedgerId='" + LedgerId + "' ORDER BY CostCenterDesc").Tables[0];
+            else
+                return DAL.ExecuteDataset(CommandType.Text, "select CostCenterId,CostCenterDesc,CostCenterShortName from ERP.CostCenter ORDER BY CostCenterDesc").Tables[0];
+
+        }
+
+        public DataTable GodownList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select GodownId,GodownDesc,GodownShortName from ERP.Godown ORDER BY GodownDesc").Tables[0];
+        }
+        public DataTable WaiterList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select * from MyMaster.dbo.UserMaster where [UserType]='Waiter'  ORDER BY UserName").Tables[0];
+        }
+        public DataTable FloorList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select FloorId, FloorDesc, FloorShortName from ERP.Floor ORDER BY FloorDesc").Tables[0];
+        }
+        public DataTable TableList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select TableId, TableDesc, TableShortName from ERP.TableMaster ORDER BY TableDesc").Tables[0];
+        }
+
+        public DataTable ProductList(string billingType = "")
+        {
+            if (billingType == "RestaurantBill")
+                return DAL.ExecuteDataset(CommandType.Text, "select ProductId, ProductDesc, ProductShortName, ProductCategory, ProductType, QtyConv, CONVERT(DECIMAL(10, 2), SalesRate) as SalesRate, CONVERT(DECIMAL(10, 2), BuyRate) as BuyRate, IsBatchwise, Isserialwise, pg.productGrpDesc, ProductSubGrpDesc, pg2.productGrpDesc as PreparationCenter, PP.ProductUnitId, PU.ProductUnitShortName as ProductUnit, PP.ProductAltUnitId, PAU.ProductUnitShortName as ProductAltUnit, (ProductId * 2) as StockQty, (ProductId * 4) as AltStockQty from ERP.Product PP left join ERP.ProductGroup PG on PP.ProductGrpId = PG.ProductGrpId left join ERP.ProductUnit PU on PP.ProductUnitId = PU.ProductUnitId left join ERP.ProductUnit PAU on PP.ProductAltUnitId = PAU.ProductUnitId left join ERP.ProductSubGroup PSG on pp.ProductSubGrpId = PSG.ProductSubGrpId  left join ERP.ProductGroup2 PG2 on pp.ProductGrpId = PG2.ProductGrpId  where ProductModel = 'Restaurant Item' order by ProductDesc").Tables[0];
+            else
+                return DAL.ExecuteDataset(CommandType.Text, "select ProductId,ProductDesc ,ProductShortName,ProductCategory,ProductType,QtyConv,AltConv,CONVERT(DECIMAL(10,2),SalesRate) as SalesRate,CONVERT(DECIMAL(10,2),BuyRate)as BuyRate,IsBatchwise,Isserialwise,productGrpDesc,ProductSubGrpDesc,PP.ProductUnitId,PU.ProductUnitShortName as ProductUnit,PP.ProductAltUnitId,PAU.ProductUnitShortName as ProductAltUnit, (ProductId*2) as StockQty, (ProductId*4) as AltStockQty from ERP.Product PP left join ERP.ProductGroup PG on PP.ProductGrpId =PG.ProductGrpId left join ERP.ProductUnit PU on PP.ProductUnitId =PU.ProductUnitId left join ERP.ProductUnit PAU on PP.ProductAltUnitId =PAU.ProductUnitId left join ERP.ProductSubGroup PSG on pp.ProductSubGrpId =PSG.ProductSubGrpId  order by ProductDesc").Tables[0];
+        }
+
+        public DataTable ProductGroupList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select ProductGrpId,ProductGrpDesc,ProductGrpShortName, Convert(decimal(18,2),Margin) Margin,PrinterName from ERP.ProductGroup ORDER BY ProductGrpDesc").Tables[0];
+        }
+        public DataTable ProductGroupList1()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select ProductGrpId,ProductGrpDesc,ProductGrpShortName, Convert(decimal(18,2),Margin) Margin,PrinterName from ERP.ProductGroup1 ORDER BY ProductGrpDesc").Tables[0];
+        }
+
+        public DataTable ProductGroupList2()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select ProductGrpId,ProductGrpDesc,ProductGrpShortName, Convert(decimal(18,2),Margin) Margin,PrinterName from ERP.ProductGroup2 ORDER BY ProductGrpDesc").Tables[0];
+        }
+        public DataTable ProductSubGroupList(string ProductGrpId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select ProductSubGrpId,ProductSubGrpDesc,ProductSubGrpShortName,PSG.ProductGrpId,PG.ProductGrpDesc from ERP.ProductSubGroup AS PSG INNER JOIN ERP.ProductGroup AS PG ON PSG.ProductGrpId=PG.ProductGrpId ");
+            if (!string.IsNullOrEmpty(ProductGrpId) && ProductGrpId != "0")
+                strSql.Append(" where PSG.ProductGrpId='" + ProductGrpId + "' ");
+            strSql.Append(" ORDER BY ProductSubGrpDesc ");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public DataTable ProductUnitList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select ProductUnitId,ProductUnitDesc,ProductUnitShortName from ERP.ProductUnit ORDER BY ProductUnitDesc").Tables[0];
+        }
+
+        public DataTable MainSalesManList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select MainSalesmanId,MainSalesmanDesc,MainSalesmanShortName from ERP.MainSalesman ORDER BY MainSalesmanDesc").Tables[0];
+        }
+        public DataTable SalesManList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select SalesmanId,SalesmanDesc,SalesmanShortName from ERP.Salesman where Salesmantype is null ORDER BY SalesmanDesc").Tables[0];
+        }
+        public DataTable MemberList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select SalesmanId,SalesmanDesc,SalesmanShortName from ERP.Salesman where SalesmanType='Member' ORDER BY SalesmanDesc").Tables[0];
+        }
+        public DataTable MemberTypeList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select [MemberTypeId], [MemberTypeDesc], [DiscountPercent] from [ERP].[MemberType] ORDER BY MemberTypeDesc").Tables[0];
+        }
+
+        public DataTable MainAreaList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select MainAreaId,MainAreaDesc,MainAreaShortName from ERP.MainArea ORDER BY MainAreaDesc").Tables[0];
+        }
+        public DataTable AreaList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select AreaId,AreaDesc,AreaShortName from ERP.Area ORDER BY AreaDesc").Tables[0];
+        }
+
+        public DataTable CurrencyList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select CurrencyId,CurrencyDesc,CurrencyShortName from ERP.Currency ORDER BY CurrencyDesc").Tables[0];
+        }
+        public DataTable DepartmentList(string Level)
+        {
+            StringBuilder str = new StringBuilder();
+            if (string.IsNullOrEmpty(Level))
+                str.Append("Select DepartmentId,DepartmentDesc,DepartmentShortName from ERP.Department ORDER BY DepartmentDesc");
+            else if (Level == "I")
+                str.Append("Select DepartmentId,DepartmentDesc,DepartmentShortName from ERP.Department where Departmentlevel='I' ORDER BY DepartmentDesc");
+            else if (Level == "II")
+                str.Append("Select DepartmentId,DepartmentDesc,DepartmentShortName from ERP.Department where Departmentlevel='II' ORDER BY DepartmentDesc");
+            else if (Level == "III")
+                str.Append("Select DepartmentId,DepartmentDesc,DepartmentShortName from ERP.Department where Departmentlevel='III' ORDER BY DepartmentDesc");
+            else if (Level == "IV")
+                str.Append("Select DepartmentId,DepartmentDesc,DepartmentShortName from ERP.Department where Departmentlevel='IV' ORDER BY DepartmentDesc");
+            else if (Level == "V")
+                str.Append("Select DepartmentId,DepartmentDesc,DepartmentShortName from ERP.Department where Departmentlevel='V' ORDER BY DepartmentDesc");
+            return DAL.ExecuteDataset(CommandType.Text, str.ToString()).Tables[0];
+        }
+        public DataTable CounterList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select CounterId,CounterDesc,CounterShortName from ERP.Counter ORDER BY CounterDesc").Tables[0];
+        }
+        public DataTable NarrationList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select NarrationId,NarrationDesc,NarrationType from ERP.NarrationMaster ORDER BY NarrationDesc").Tables[0];
+        }
+        public DataTable DocumrntNumberList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select DocId, DocModule, DocDesc from ERP.DocumentNumbering where DocModule='" + ClsGlobal.ModuleName + "' ORDER BY DocDesc").Tables[0];
+        }
+
+        public DataTable BranchList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select BranchId, BranchName, BranchShortName from ERP.Branch ORDER BY BranchName").Tables[0];
+        }
+
+        public DataTable CompanyUnitList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select CompanyUnitId, CmpUnitName, CmpUnitShortName,B.BranchId,B.BranchName from ERP.CompanyUnit Inner join ERP.Branch B on ERP.CompanyUnit.BranchId=B.BranchId ORDER BY CmpUnitName,BranchName").Tables[0];
+        }
+
+        public DataTable SalesBillingTermList(string billwise)
+        {
+            StringBuilder str = new StringBuilder();
+            str.Append("Select TermId, TermPosition,case when TermType = 'I' then 'Invoice' else 'Return'end as TermType, TermDesc,Category, GlDesc as LedgerDesc, Case when Billwise = 'Y' then 'Bill Wise' else 'Product Wise' end as Billwise from ERP.SalesBillingTerm left join ERP.GeneralLedger on ERP.SalesBillingTerm.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            if (!string.IsNullOrEmpty(billwise))
+                str.Append(" where billwise='" + billwise + "' \n");
+            str.Append(" order By TermPosition ");
+            return DAL.ExecuteDataset(CommandType.Text, str.ToString()).Tables[0];
+        }
+
+        public DataTable PurchaseBillingTermList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select TermId, TermPosition,case when TermType='I' then 'Invoice' else 'Return'end as TermType, TermDesc,Category,GlDesc as LedgerDesc,Case when Billwise='Y' then 'Bill Wise' else 'Product Wise' end as Billwise from  ERP.PurchaseBillingTerm left join ERP.GeneralLedger on ERP.PurchaseBillingTerm.LedgerId=ERP.GeneralLedger.LedgerId order By TermPosition").Tables[0];
+        }
+
+        public DataTable MenuPermissionGroupList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select distinct PremissionGroupName  from  MyMaster.dbo.MenuPremissionGroup ").Tables[0];
+        }
+
+        public DataTable UserList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select UserCode,UserName,MobileNo,EmailId from MyMaster.dbo.UserMaster ORDER BY UserCode").Tables[0];
+        }
+
+        public DataTable DocumentNumberList(string DocModule, string DocStartDate, string DocEndDate, string UserCode, string BranchId, string CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select DocId, DocDesc, DocType, DocPrefix, DocSufix, DocCurrentNo, DocEndNo, NumericalStyle from erp.DocumentNumbering \n");
+            strSql.Append("where [status] = '1' and DocModule = '" + DocModule + "' AND DocStartDate>= '"+ Convert.ToDateTime(DocStartDate).ToString("yyyy-MM-dd") + "' AND DocEndDate<= '"+ Convert.ToDateTime( DocEndDate).ToString("yyyy-MM-dd") + "' \n");
+           // strSql.Append("AND(UserCode IS NULL OR UserCode = 'All' or UserCode = '1') \n");
+           // strSql.Append("AND(BranchId IS NULL OR BranchId = '1') \n");
+            //strSql.Append("AND(CompanyUnitId IS NULL OR CompanyUnitId = '1') \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable UDFMasterList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select * from ERP.UDFMasterEntry order by FieldName").Tables[0];
+        }
+
+        public DataTable CashBankVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc,ChequeNo,ChequeDate,ChequeMiti \n");
+            strSql.Append("from ERP.CashBankMaster, ERP.GeneralLedger  \n");
+            strSql.Append("where ERP.CashBankMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append("and IsAuthorized=0 Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable JournalVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select JM.VoucherNo,VDate,Vmiti,GlDesc  \n");
+            strSql.Append("from ERP.JournalMaster JM  Left join  ERP.JournalDetails  JD on JM.VoucherNo=JD.VoucherNo left join  ERP.GeneralLedger GL on  JD.LedgerId= GL.LedgerId   \n");
+            strSql.Append("where 1=1  \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append("and IsAuthorized=0 Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+
+        public DataTable DebitNoteVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc \n");
+            strSql.Append("from ERP.DebitNoteMaster, ERP.GeneralLedger  \n");
+            strSql.Append("where ERP.DebitNoteMaster.LedgerId = ERP.GeneralLedger.LedgerId\n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append("and IsAuthorized=0 Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable CreditNoteVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc \n");
+            strSql.Append("from ERP.CreditNoteMaster, ERP.GeneralLedger  \n");
+            strSql.Append("where ERP.CreditNoteMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append("and IsAuthorized=0 Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable ProductSchemeList()
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select SchemeId,SchemeName from  [ERP].[SpecialRateSchemeMaster]  \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public DataTable SalesVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,DueDay,DueDate,ChallanNo,OrderNo,QuotationNo \n");
+            strSql.Append("from ERP.SalesInvoiceMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.SalesInvoiceMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.SalesInvoiceMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.SalesInvoiceMaster.SalesmanId=ERP.Salesman.SalesmanId where IsBillCancel=0 \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable SalesVoucherListForSalesReturn(int BranchId, int CompanyUnitId)
+        {
+     
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,DueDay,DueDate,ChallanNo,OrderNo,QuotationNo \n");
+			strSql.Append("from ERP.SalesInvoiceMaster SIM \n");
+			strSql.Append("left outer join  ERP.GeneralLedger   on SIM.LedgerId = ERP.GeneralLedger.LedgerId \n");
+			strSql.Append("left outer join  ERP.SubLedger   on SIM.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+			strSql.Append("left outer join ERP.Salesman ON  SIM.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+			strSql.Append(" and VoucherNo in ( \n");
+			strSql.Append("Select PID.VoucherNo from ERP.SalesInvoiceDetails as PID \n");
+			strSql.Append("Left Outer join( \n");
+			strSql.Append("select sum(Qty) as SQty, SalesInvoiceNo, SalesInvoiceSNo, ProductId \n");
+			strSql.Append("from ERP.SalesReturnDetails as PRD \n");
+			strSql.Append("group by SalesInvoiceNo, SalesInvoiceSNo, ProductId \n");
+			strSql.Append(") as tab on tab.SalesInvoiceNo = PID.VoucherNo and tab.SalesInvoiceSNo = PID.SNo \n");
+			strSql.Append("group by PID.VoucherNo \n");
+			strSql.Append("Having Sum((PID.Qty - IsNull(SQty, 0))) <> 0) \n");
+			if (BranchId != 0)
+				strSql.Append("and BranchId ='" + BranchId + "' \n");
+			else
+				strSql.Append("and BranchId is null \n");
+			if (CompanyUnitId != 0)
+				strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+			else
+				strSql.Append("and CompanyUnitId is null \n");
+			strSql.Append(" Order by VDate,VoucherNo \n");
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public DataTable SalesChallanVoucherListForChallanReturn(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,OrderNo,QuotationNo \n");
+            strSql.Append("from ERP.SalesChallanMaster SIM \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on SIM.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on SIM.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  SIM.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            strSql.Append(" and VoucherNo in ( \n");
+            strSql.Append("Select PID.VoucherNo from ERP.SalesChallanDetails as PID \n");
+            strSql.Append("Left Outer join( \n");
+            strSql.Append("select sum(Qty) as SQty, ChallanNo, ChallanSNo, ProductId \n");
+            strSql.Append("from ERP.SalesChallanReturnDetails as PRD \n");
+            strSql.Append("group by ChallanNo, ChallanSNo, ProductId \n");
+            strSql.Append(") as tab on tab.ChallanNo = PID.VoucherNo and tab.ChallanSNo = PID.SNo \n");
+            strSql.Append("group by PID.VoucherNo \n");
+            strSql.Append("Having Sum((PID.Qty - IsNull(SQty, 0))) <> 0) \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        
+        public DataTable SalesReturnVoucherList(int BranchId, int CompanyUnitId)
+		{
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc  \n");
+			strSql.Append("from ERP.SalesReturnMaster \n");
+			strSql.Append("left outer join  ERP.GeneralLedger   on ERP.SalesReturnMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+			strSql.Append("left outer join  ERP.SubLedger   on ERP.SalesReturnMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+			strSql.Append("left outer join ERP.Salesman ON  ERP.SalesReturnMaster.SalesmanId=ERP.Salesman.SalesmanId  \n");
+			if (BranchId != 0)
+				strSql.Append("and BranchId ='" + BranchId + "' \n");
+			else
+				strSql.Append("and BranchId is null \n");
+			if (CompanyUnitId != 0)
+				strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+			else
+				strSql.Append("and CompanyUnitId is null \n");
+			strSql.Append(" Order by VDate,VoucherNo \n");
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+		}
+
+        public DataTable SalesChallanReturnVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc  \n");
+            strSql.Append("from ERP.SalesChallanReturnMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.SalesChallanReturnMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.SalesChallanReturnMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.SalesChallanReturnMaster.SalesmanId=ERP.Salesman.SalesmanId  \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        
+        public DataTable SalesChallanVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,OrderNo,QuotationNo \n");
+            strSql.Append("from ERP.SalesChallanMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.SalesChallanMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.SalesChallanMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.SalesChallanMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+		public DataTable SalesChallanOutstandingList(int BranchId, int CompanyUnitId)
+		{
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,OrderNo,QuotationNo \n");
+			strSql.Append("from ERP.SalesChallanMaster \n");
+			strSql.Append("left outer join  ERP.GeneralLedger   on ERP.SalesChallanMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+			strSql.Append("left outer join  ERP.SubLedger   on ERP.SalesChallanMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+			strSql.Append("left outer join ERP.Salesman ON  ERP.SalesChallanMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+			if (BranchId != 0)
+				strSql.Append("and BranchId ='" + BranchId + "' \n");
+			else
+				strSql.Append("and BranchId is null \n");
+			if (CompanyUnitId != 0)
+				strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+			else
+				strSql.Append("and CompanyUnitId is null \n");
+			strSql.Append("  and voucherNo not in (Select  ChallanNo from erp.SalesInvoiceMaster where challanNO is not null)  Order by VDate,VoucherNo \n");
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+		}
+
+		public DataTable PurchaseVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,DueDay,DueDate,ChallanNo,OrderNo,QuotationNo \n");
+            strSql.Append("from ERP.PurchaseInvoiceMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.PurchaseInvoiceMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.PurchaseInvoiceMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.PurchaseInvoiceMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable PurchaseVoucherListForPurchaseReturn(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,DueDay,DueDate,ChallanNo,OrderNo,QuotationNo \n");
+            strSql.Append("from ERP.PurchaseInvoiceMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.PurchaseInvoiceMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.PurchaseInvoiceMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.PurchaseInvoiceMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            strSql.Append(" and VoucherNo in ( \n");
+            strSql.Append("Select PID.VoucherNo from ERP.PurchaseInvoiceDetails as PID \n");
+            strSql.Append("Left Outer join( \n");
+            strSql.Append("select sum(Qty) as SQty, PurchaseInvoiceNo, PurchaseInvoiceSNo, ProductId \n");
+            strSql.Append("from ERP.PurchaseInvoiceReturnDetails as PRD \n");
+            strSql.Append("group by PurchaseInvoiceNo, PurchaseInvoiceSNo, ProductId \n");
+            strSql.Append(") as tab on tab.PurchaseInvoiceNo = PID.VoucherNo and tab.PurchaseInvoiceSNo = PID.SNo \n");
+            strSql.Append("group by PID.VoucherNo \n");
+            strSql.Append("Having Sum((PID.Qty - IsNull(SQty, 0))) <> 0) \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable PurchaseChallanListForPurchaseChallanReturn(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc,OrderNo,QuotationNo \n");
+            strSql.Append("from ERP.PurchaseChallanMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.PurchaseChallanMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.PurchaseChallanMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.PurchaseChallanMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            strSql.Append(" and VoucherNo in ( \n");
+            strSql.Append("Select PCD.VoucherNo from ERP.PurchaseChallanDetails as PCD \n");
+            strSql.Append("Left Outer join( \n");
+            strSql.Append("select sum(Qty) as SQty, ChallanInvoiceNo, ChallanInvoiceSNo, ProductId \n");
+            strSql.Append("from ERP.PurchaseChallanReturnDetails as PCRD \n");
+            strSql.Append("group by ChallanInvoiceNo, ChallanInvoiceSNo, ProductId \n");
+            strSql.Append(") as tab on tab.ChallanInvoiceNo = PCD.VoucherNo and tab.ChallanInvoiceSNo = PCD.SNo \n");
+            strSql.Append("group by PCD.VoucherNo \n");
+            strSql.Append("Having Sum((PCD.Qty - IsNull(SQty, 0))) <> 0) \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable PurchaseReturnVoucherList(int BranchId, int CompanyUnitId)
+		{
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc  \n");
+			strSql.Append("from ERP.PurchaseInvoiceReturnMaster \n");
+			strSql.Append("left outer join  ERP.GeneralLedger   on ERP.PurchaseInvoiceReturnMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+			strSql.Append("left outer join  ERP.SubLedger   on ERP.PurchaseInvoiceReturnMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+			strSql.Append("left outer join ERP.Salesman ON  ERP.PurchaseInvoiceReturnMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+			if (BranchId != 0)
+				strSql.Append("and BranchId ='" + BranchId + "' \n");
+			else
+				strSql.Append("and BranchId is null \n");
+			if (CompanyUnitId != 0)
+				strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+			else
+				strSql.Append("and CompanyUnitId is null \n");
+			strSql.Append(" Order by VDate,VoucherNo \n");
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+		}
+
+        public DataTable PurchaseChallanReturnVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc  \n");
+            strSql.Append("from ERP.PurchaseChallanReturnMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.PurchaseChallanReturnMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.PurchaseChallanReturnMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.PurchaseChallanReturnMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable PurchaseChallanVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,OrderNo,QuotationNo \n");
+            strSql.Append("from ERP.PurchaseChallanMaster  as PCM \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on PCM.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on PCM.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  PCM.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+		public DataTable PurchaseChallanOutstandingVoucherList(int BranchId, int CompanyUnitId)
+		{
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,OrderNo,QuotationNo \n");
+			strSql.Append("from ERP.PurchaseChallanMaster  as PCM \n");
+			strSql.Append("left outer join  ERP.GeneralLedger   on PCM.LedgerId = ERP.GeneralLedger.LedgerId \n");
+			strSql.Append("left outer join  ERP.SubLedger   on PCM.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+			strSql.Append("left outer join ERP.Salesman ON  PCM.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+			if (BranchId != 0)
+				strSql.Append("and BranchId ='" + BranchId + "' \n");
+			else
+				strSql.Append("and BranchId is null \n");
+			if (CompanyUnitId != 0)
+				strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+			else
+				strSql.Append("and CompanyUnitId is null \n");
+			strSql.Append(" and voucherNo not in (Select  ChallanNo from erp.PurchaseInvoiceMaster where challanNO is not null)  Order by VDate,VoucherNo \n");
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+		}
+
+		public DataTable PurchaseQuotationVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc \n");
+            strSql.Append("from ERP.PurchaseQuotationMaster  as PQM \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on PQM.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on PQM.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  PQM.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable PurchaseIndentVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo, VDate, Vmiti, RequestedBy \n");
+            strSql.Append("from ERP.PurchaseIndentMaster  as PQM \n");
+            strSql.Append(" where 1=1 \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+    }
+
+        public DataTable PurchaseOrderVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc,QuotationNo, IndentNo \n");
+            strSql.Append("from ERP.PurchaseOrderMaster as POM \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on POM.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on POM.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  POM.SalesmanId=ERP.Salesman.SalesmanId where 1=1 \n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+		public DataTable PurchaseOrderOutstandingList(int BranchId, int CompanyUnitId)
+		{
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append("Select VoucherNo, VDate, VMiti, GlDesc, SalesmanDesc, SubledgerDesc \n");
+			strSql.Append("from ERP.PurchaseOrderMaster as SOM \n");
+			strSql.Append("Left Outer join ERP.GeneralLedger as GL on GL.LedgerId = SOM.LedgerId \n");
+			strSql.Append("Left Outer Join erp.Salesman on Salesman.SalesmanId = SOM.SalesmanId \n");
+			strSql.Append("Left outer Join ERP.SubLedger as SL on SL.SubledgerId = SOM.SubledgerId \n");
+			strSql.Append("where VoucherNo in ( \n");
+			strSql.Append("Select SOD.VoucherNo from ERP.PurchaseOrderDetails as SOD \n");
+			strSql.Append("Left Outer join( \n");
+			strSql.Append("select sum(Qty) as SQty, OrderNo, OrderSNo, ProductId \n");
+			strSql.Append("from ERP.PurchaseInvoiceDetails as SID \n");
+			strSql.Append("group by OrderNo, OrderSNo, ProductId \n");
+			strSql.Append(") as tab on tab.OrderNo = SOD.VoucherNo and tab.OrderSNo = SOD.SNo \n");
+			strSql.Append("Left Outer join( \n");
+			strSql.Append("select sum(Qty) as SCQty, OrderNo, OrderSNo, ProductId from ERP.PurchaseChallanDetails as SCID group by OrderNo, OrderSNo, ProductId \n");
+			strSql.Append(") as tab2 on tab2.OrderNo = SOD.VoucherNo and tab2.OrderSNo = SOD.SNo \n");
+			strSql.Append("Left Outer join( \n");
+			strSql.Append("select sum(Qty) as CQty, VoucherNo, Sno, ProductId  from ERP.PurchaseOrderCancelDetails as SOCD group by VoucherNo, Sno, ProductId \n");
+			strSql.Append(") as tab1 on tab1.VoucherNo = SOD.VoucherNo and tab1.Sno = SOD.SNo \n");
+			strSql.Append("and tab1.ProductId = SOD.ProductId  group by SOD.VoucherNo \n");
+			strSql.Append("Having Sum((SOD.Qty - IsNull(SQty, 0) - IsNull(SCQty, 0) -IsNull(CQty, 0))) <> 0 ) \n");
+			strSql.Append("and BranchId is null \n");
+			strSql.Append("and CompanyUnitId is null \n");
+			strSql.Append("Order by VoucherNo,VDate \n");
+
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+		}
+
+		public DataTable SalesOrderVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc ,QuotationNo  \n");
+            strSql.Append("from ERP.SalesOrderMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.SalesOrderMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.SalesOrderMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.SalesOrderMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1\n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public DataTable SalesOrderOutstandingList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+			strSql.Append("Select VoucherNo, VDate, VMiti, GlDesc, SalesmanDesc, SubledgerDesc \n");
+			strSql.Append("from ERP.SalesOrderMaster as SOM \n");
+			strSql.Append("Left Outer join ERP.GeneralLedger as GL on GL.LedgerId = SOM.LedgerId \n");
+			strSql.Append("Left Outer Join erp.Salesman on Salesman.SalesmanId = SOM.SalesmanId \n");
+			strSql.Append("Left outer Join ERP.SubLedger as SL on SL.SubledgerId = SOM.SubledgerId \n");
+			strSql.Append("where VoucherNo in ( \n");
+			strSql.Append("Select SOD.VoucherNo from ERP.SalesOrderDetails as SOD \n");
+			strSql.Append("Left Outer join( \n");
+			strSql.Append("select sum(Qty) as SQty, OrderNo, OrderSNo, ProductId from ERP.SalesInvoiceDetails as SID group by OrderNo, OrderSNo, ProductId \n");
+			strSql.Append(") as tab on tab.OrderNo = SOD.VoucherNo and tab.OrderSNo = SOD.SNo \n");
+			strSql.Append("Left Outer join( \n");
+			strSql.Append("select sum(Qty) as CCQty, OrderNo, OrderSNo, ProductId from ERP.SalesChallanDetails as SCID group by OrderNo, OrderSNo, ProductId \n");
+			strSql.Append(") as tab1 on tab1.OrderNo = SOD.VoucherNo and tab1.OrderSNo = SOD.SNo \n");
+			strSql.Append("Left Outer join( \n");
+			strSql.Append("select sum(Qty) as CQty, VoucherNo, Sno, ProductId  from ERP.SalesOrderCancelDetails as SOCD group by VoucherNo, Sno, ProductId \n");
+			strSql.Append(") as tab2 on tab2.VoucherNo = SOD.VoucherNo and tab2.Sno = SOD.SNo \n");
+			strSql.Append("and tab1.ProductId = SOD.ProductId  group by SOD.VoucherNo \n");
+			strSql.Append(" Having Sum((SOD.Qty - IsNull(SQty, 0) - ISNULL(CCQty, 0) - IsNull(CQty, 0))) <> 0 ) \n");
+
+			if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "'\n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append("Order by VoucherNo,VDate\n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public DataTable SalesQuotationVoucherList(int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select VoucherNo,VDate,Vmiti,GlDesc ,SubledgerDesc ,SalesmanDesc   \n");
+            strSql.Append("from ERP.SalesQuotationMaster \n");
+            strSql.Append("left outer join  ERP.GeneralLedger   on ERP.SalesQuotationMaster.LedgerId = ERP.GeneralLedger.LedgerId \n");
+            strSql.Append("left outer join  ERP.SubLedger   on ERP.SalesQuotationMaster.SubLedgerId = ERP.SubLedger.SubLedgerId \n");
+            strSql.Append("left outer join ERP.Salesman ON  ERP.SalesQuotationMaster.SalesmanId=ERP.Salesman.SalesmanId where 1=1\n");
+            if (BranchId != 0)
+                strSql.Append("and BranchId ='" + BranchId + "' \n");
+            else
+                strSql.Append("and BranchId is null \n");
+            if (CompanyUnitId != 0)
+                strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+            else
+                strSql.Append("and CompanyUnitId is null \n");
+            strSql.Append(" Order by VDate,VoucherNo \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+		public DataTable SalesQuotationOutstandingList(int BranchId, int CompanyUnitId)
+		{
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append("Select VoucherNo,VDate,VMiti,GlDesc,SalesmanDesc,SubledgerDesc\n");
+			strSql.Append("from ERP.SalesQuotationMaster as SQM\n");
+			strSql.Append("Left Outer join ERP.GeneralLedger as GL on GL.LedgerId=SQM.LedgerId\n");
+			strSql.Append("Left Outer Join erp.Salesman on Salesman.SalesmanId=SQM.SalesmanId\n");
+			strSql.Append("Left outer Join ERP.SubLedger as SL on SL.SubledgerId=SQM.SubledgerId\n");
+			strSql.Append("where VoucherNo in (\n");
+			strSql.Append("Select SQD.VoucherNo from ERP.SalesQuotationDetails as SQD\n");
+			strSql.Append("Left Outer join(\n");
+			strSql.Append("select sum(Qty) as SQty,QuotationNo,QuotationSNo,ProductId\n");
+			strSql.Append("from ERP.SalesOrderDetails as SID\n");
+			strSql.Append("group by QuotationNo,QuotationSNo,ProductId\n");
+			strSql.Append(") as tab on tab.QuotationNo=SQD.VoucherNo and tab.QuotationSNo=SQD.SNo\n");
+			strSql.Append("group by SQD.VoucherNo\n");
+			strSql.Append("Having Sum((SQD.Qty - IsNull(SQty, 0))) <> 0 )\n");
+			if (BranchId != 0)
+				strSql.Append("and BranchId ='" + BranchId + "' \n");
+			else
+				strSql.Append("and BranchId is null \n");
+			if (CompanyUnitId != 0)
+				strSql.Append("and CompanyUnitId ='" + CompanyUnitId + "' \n");
+			else
+				strSql.Append("and CompanyUnitId is null \n");
+			strSql.Append("Order by VDate,VoucherNo\n");
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+		}
+
+		public DataTable PartyInfoList(string ModuleName, int BranchId, int CompanyUnitId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            //if (ModuleName == "SALES")
+            //{
+            strSql.Append("Select distinct LedgerId,GlDesc,GlShortName,GlPanNo,[address],MobileNo \n");
+            strSql.Append("from( \n");
+            strSql.Append("Select LedgerId,GlDesc, GlShortName, isnull(PanNo,'') as GlPanNo,[address],MobileNo \n");
+            strSql.Append("from ERP.GeneralLedger where GlCategory in ('Customer','Both','Vendor') \n");
+            strSql.Append("Union All \n");
+            strSql.Append("SELECT 0 as LedgerId,PartyName,'' as GlShortName, PartyVatNo,PartyAddress,PartyMobileNo FROM ERP.SalesInvoiceMaster \n");
+            strSql.Append("WHERE PartyName NOT IN(SELECT GlDesc FROM ERP.GeneralLedger where GlCategory in ('Customer','Both','LC','Vendor')) \n");
+            strSql.Append(") as tbl \n");
+            strSql.Append("Order by GlDesc");
+            //}
+            //else
+            //{
+            //    strSql.Append("Select distinct LedgerId,GlDesc,GlShortName,GlPanNo,[address],MobileNo \n");
+            //    strSql.Append("from( \n");
+            //    strSql.Append("Select LedgerId,GlDesc, GlShortName, isnull(PanNo,'') as GlPanNo,[address],MobileNo \n");
+            //    strSql.Append("from ERP.GeneralLedger where GlCategory in ('Customer','Both','Vendor') \n");
+            //    strSql.Append("Union All \n");
+            //    strSql.Append("SELECT 0 as LedgerId,PartyName,'' as GlShortName, PartyVatNo,PartyAddress,PartyMobileNo FROM ERP.PurchaseInvoiceMaster \n");
+            //    strSql.Append("WHERE PartyName NOT IN(SELECT GlDesc FROM ERP.GeneralLedger where GlCategory in ('Customer','Both','LC','Vendor')) \n");
+            //    strSql.Append(") as tbl \n");
+            //    strSql.Append("Order by GlDesc");
+            //}
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable PageNameList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select distinct PageName from Erp.PickListTemplate").Tables[0];
+        }
+
+        public DataTable PageNameWiseFieldList(string PageName)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select * from Erp.PickListTemplate where PageName='"+ PageName + "'").Tables[0];
+        }
+
+		public DataTable BOMVoucherList(int BranchId, int CompanyUnitId)
+		{
+			return DAL.ExecuteDataset(CommandType.Text, "select BOMM.* from Erp.BillOfMaterialMaster BOMM ").Tables[0];
+		}
+
+		public class ModelPickListControl
+        {
+            public string FieldName { get; set; }
+            public string DisplayName { get; set; }
+            public int IsPrimaryColumn { get; set; }
+            public int IsSearchable { get; set; }
+            public int Odr { get; set; }
+            public int ShowHide { get; set; }
+            public decimal ColumnWidth { get; set; }
+            public string Module { get; set; }
+        }
+
+        public void SavePickListControlOptions(string pageName)
+        {
+            StringBuilder strSql = new StringBuilder();
+            int i = 0;
+            strSql.Append("Delete from [ERP].[PickListTemplate] where PageName ='" + pageName + "' \n");
+            foreach (ModelPickListControl det in this.PickListControl)
+            {
+                strSql.Append("INSERT INTO ERP.PickListTemplate( FieldName, DisplayName, PrimaryColumn, IsSearchable, Odr, ShowHide, ColumnWidth, Module, PageName) values('" + det.FieldName + "','" + det.DisplayName + "','" + det.IsPrimaryColumn + "','" + det.IsSearchable + "','" + det.Odr + "','" + det.ShowHide + "','" + det.ColumnWidth + "','" + det.Module + "','" + pageName + "') \n");
+                i++;
+            }
+            PickListControl.Clear();
+            DAL.ExecuteNonQuery(System.Data.CommandType.Text, strSql.ToString());
+
+        }
+    }
+}

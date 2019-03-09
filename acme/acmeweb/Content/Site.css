@@ -1,0 +1,129 @@
+﻿.container {
+    width: 100%;
+}
+
+:required {
+    background: url(../Images/requred_bg.png) no-repeat;
+    background-position: right top;
+}
+
+input[type="text"],
+select.form-control {
+    border: none;
+    border: 1px solid #CED4DA;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 3px 15px 3px 5px;
+    height: 25px;
+}
+
+input[type="text"]:focus,
+select.form-control:focus {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    background: #FDE8C1;
+    border-color: #F9B02B;
+}
+
+.modal-header {
+    padding: 5px 15px;
+}
+
+.modal-footer {
+    padding: 5px 15px;
+}
+
+    .modal-footer .btn {
+        padding: 2px 10px;
+    }
+
+.modal {
+    z-index: 5000000;
+}
+
+/*------------------- table ----------------*/
+.datatabletoolbar {
+    color: red;
+}
+
+.datatabletoolbar h4 {
+    margin-top: 0px;
+}
+
+table.dataTable {
+    border-collapse: collapse;
+}
+
+.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+    padding: 3px 5px;
+    font-size: 12px;
+}
+
+table.dataTable thead th, table.dataTable thead td {
+    padding: 6px 5px 5px 5px;
+    border-bottom: 1px solid #b5b1b1;
+}
+
+button.dt-button, div.dt-button, a.dt-button {
+    padding: 0.2em 0.8em 0.1em 0.8em;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.2em 0.8em 0.1em 0.8em;
+}
+
+.dataTables_filter input {
+    border: 1px solid #E4E6E7;
+    background: url(../images/icon_search16x16.png) no-repeat;
+    background-position: right top;
+}
+
+.txtDataTableSearch {
+    font-size: 11px;
+    font-weight: normal;
+    width: 100%;
+    border: 1px solid #E4E6E7;
+    background: url(../images/icon_search16x16.png) no-repeat;
+    background-position: right top;
+}
+.table > tfoot > tr > th, .table > tfoot > tr > td{padding:0px;}
+
+.alert {
+    padding: 5px 15px;
+}
+
+.xxx {
+    position: relative;
+    width: 100%;
+    background-color: #fff;
+    overflow: hidden;
+    border-collapse: collapse;
+}
+
+    .xxx thead {
+        position: relative;
+        display: block; /*seperates the header from the body allowing it to be positioned*/
+        width: 100%;
+        overflow: visible;
+    }
+
+    /*.xxx thead th {
+font-weight: bold;
+padding: 3px 10px;
+border: 1px solid #AAAAAA;
+}*/
+
+    .xxx tbody {
+        position: relative;
+        display: block; /*seperates the tbody from the header*/
+        width: 100%;
+        height: 500px;
+        overflow: scroll;
+    }
+
+/*.xxx tbody td {
+background-color: #fff;
+padding: 3px 7px;
+border: 1px solid #AAAAAA;
+}*/

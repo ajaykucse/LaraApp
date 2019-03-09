@@ -1,0 +1,457 @@
+﻿using DataAccessLayer.Common;
+using DataAccessLayer.SystemSetting;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Windows.Forms;
+
+namespace acmedesktop.SystemSetting
+{
+    public partial class FrmCompanyUnit : Form
+    {
+        private ClsCompanyUnit _objCompanyUnit = new ClsCompanyUnit();
+        private ClsBranch _objBranch = new ClsBranch();
+        ClsCommon _objCommon = new ClsCommon();
+        public int _CompanyUnitId;
+        private string _Tag = "", _SearchKey = "", result ="";
+        DataTable NavMenuDataList; int NavMenuDataRowPosition = 0;
+        public FrmCompanyUnit()
+        {
+            InitializeComponent();
+        }
+        private void FrmCompanyUnit_Load(object sender, EventArgs e)
+        {
+            NavMenuDataList = _objCompanyUnit.GetDataCompanyUnit(0);
+            ControlEnableDisable(true, false);
+            ClearFld();
+            BtnNew.Focus();
+            LoadCombo();
+        }
+        private void FrmCompanyUnit_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                SendKeys.Send("{Tab}");
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                if (BtnCancel.Enabled == true)
+                {
+                    _Tag = "";
+                    BtnCancel.PerformClick();
+                }
+                else
+                {
+                    BtnExit.PerformClick();
+                }
+
+                DialogResult = DialogResult.Cancel;
+                return;
+            }
+        }
+        public void ControlEnableDisable(bool trb, bool fld)
+        {
+            BtnNew.Enabled = trb;
+            BtnEdit.Enabled = trb;
+            BtnDelete.Enabled = trb;
+            BtnExit.Enabled = trb;
+            BtnFirstData.Enabled = trb;
+            BtnNextData.Enabled = trb;
+            BtnLastData.Enabled = trb;
+            BtnPreviousData.Enabled = trb;
+            
+            TxtDescription.Enabled = fld;
+            Utility.EnableDesibleColor(TxtDescription, fld);
+            TxtShortName.Enabled = fld;
+            Utility.EnableDesibleColor(TxtShortName, fld);
+            TxtAddress.Enabled = fld;
+            Utility.EnableDesibleColor(TxtAddress, fld);
+
+            TxtCity.Enabled = fld;
+            Utility.EnableDesibleColor(TxtCity, fld);
+
+            TxtContactPerson.Enabled = fld;
+            Utility.EnableDesibleColor(TxtContactPerson, fld);
+
+            TxtPhoneNo.Enabled = fld;
+            Utility.EnableDesibleColor(TxtPhoneNo, fld);
+
+            TxtCountry.Enabled = fld;
+            Utility.EnableDesibleColor(TxtCountry, fld);
+            TxtEmail.Enabled = fld;
+            Utility.EnableDesibleColor(TxtEmail, fld);
+            TxtFax.Enabled = fld;
+            Utility.EnableDesibleColor(TxtFax, fld);
+            TxtContactPersonMobileNo.Enabled = fld;
+            Utility.EnableDesibleColor(TxtContactPersonMobileNo, fld);
+            TxtContactPersonPhoneNo.Enabled = fld;
+            Utility.EnableDesibleColor(TxtContactPersonPhoneNo, fld);
+            TxtContactPerson.Enabled = fld;
+            Utility.EnableDesibleColor(TxtContactPerson, fld);
+            TxtContactPersonAdd.Enabled = fld;
+            Utility.EnableDesibleColor(TxtContactPersonAdd, fld);
+
+            TxtState.Enabled = fld;
+            Utility.EnableDesibleColor(TxtState, fld);
+            TxtCity.Enabled = fld;
+            Utility.EnableDesibleColor(TxtCity, fld);
+
+            CmbBranch.Enabled = fld;
+            Utility.EnableDesibleComboBoxColor(CmbBranch, fld);
+
+            BtnSave.Enabled = fld;
+            BtnCancel.Enabled = fld;
+
+            if (BtnNew.Enabled == true)
+            {
+                BtnNew.Focus();
+            }
+            else if (TxtDescription.Enabled == true)
+            {
+                TxtDescription.Focus();
+            }
+        }
+        private void ClearFld()
+        {
+            _CompanyUnitId = 0;
+            TxtDescription.Tag = "0";
+            foreach (Control control in PanelContainer.Controls)
+            {
+                if (control is TextBox)
+                {
+                    control.Text = "";
+                }
+            }
+            TxtDescription.Focus();
+        }
+        private void LoadCombo()
+        {
+            DataTable dtBranch = _objBranch.GetDataBranchList();
+            if (dtBranch.Rows.Count > 0)
+            {
+                CmbBranch.Enabled = true;
+                Dictionary<string, string> _CmbType = new Dictionary<string, string>();
+                foreach (DataRow ro in dtBranch.Rows)
+                {
+                    _CmbType.Add(ro["BranchId"].ToString(), ro["BranchName"].ToString());
+                }
+                CmbBranch.DataSource = new BindingSource(_CmbType, null);
+                CmbBranch.DisplayMember = "Value";
+                CmbBranch.ValueMember = "Key";
+                CmbBranch.SelectedIndex = 0;
+            }
+        }
+        private void BtnNew_Click(object sender, EventArgs e)
+        {
+            _Tag = "NEW";
+            ControlEnableDisable(false, true);
+            Text = "Company Unit [NEW]";
+        }
+        private void BtnEdit_Click(object sender, EventArgs e)
+        {
+            _Tag = "EDIT";
+            ControlEnableDisable(false, true);
+            Text = "Company Unit [EDIT]";
+        }
+        private void BtnDelete_Click(object sender, EventArgs e)
+        {
+            _Tag = "DELETE";
+            ControlEnableDisable(false, false);
+            Text = "Company Unit [DELETE]";
+            TxtDescription.Enabled = true;
+            TxtDescription.Focus();
+            BtnSave.Enabled = true;
+            BtnCancel.Enabled = true;
+        }
+        private void BtnFirstData_Click(object sender, EventArgs e)
+        {
+            if (NavMenuDataList.Rows.Count > 0)
+            {
+                this.NavMenuDataRowPosition = 0;
+                DataTable dt = _objCompanyUnit.GetDataCompanyUnit(Convert.ToInt32(NavMenuDataList.Rows[NavMenuDataRowPosition]["CompanyUnitId"].ToString()));
+                SetData(dt);
+            }
+            else
+            {
+                MessageBox.Show("No record is found to display.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        private void BtnNextData_Click(object sender, EventArgs e)
+        {
+            if (NavMenuDataList.Rows.Count == 0)
+            {
+                MessageBox.Show("No record is found to display.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (this.NavMenuDataRowPosition < NavMenuDataList.Rows.Count - 1)
+            {
+                this.NavMenuDataRowPosition++;
+                DataTable dt = _objCompanyUnit.GetDataCompanyUnit(Convert.ToInt32(NavMenuDataList.Rows[NavMenuDataRowPosition]["CompanyUnitId"].ToString()));
+                SetData(dt);
+            }
+            else
+            {
+                MessageBox.Show("This is the last record.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        private void BtnPreviousData_Click(object sender, EventArgs e)
+        {
+            if (NavMenuDataList.Rows.Count == 0)
+            {
+                MessageBox.Show("No record is found to display.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (NavMenuDataList.Rows.Count == 1)
+            {
+                MessageBox.Show("This is the frist record.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (this.NavMenuDataRowPosition == NavMenuDataList.Rows.Count - 1 || this.NavMenuDataRowPosition != 0)
+            {
+                this.NavMenuDataRowPosition--;
+                DataTable dt = _objCompanyUnit.GetDataCompanyUnit(Convert.ToInt32(NavMenuDataList.Rows[NavMenuDataRowPosition]["CompanyUnitId"].ToString()));
+                SetData(dt);
+            }
+            else
+            {
+                MessageBox.Show("This is the frist record.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        private void BtnLastData_Click(object sender, EventArgs e)
+        {
+            if (NavMenuDataList.Rows.Count <= 0)
+            {
+                MessageBox.Show("No record is found to display.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            this.NavMenuDataRowPosition = NavMenuDataList.Rows.Count - 1;
+            DataTable dt = _objCompanyUnit.GetDataCompanyUnit(Convert.ToInt32(NavMenuDataList.Rows[NavMenuDataRowPosition]["CompanyUnitId"].ToString()));
+            SetData(dt);
+        }
+        private void BtnExit_Click(object sender, EventArgs e)
+        {
+            if (ClsGlobal.ConfirmFormClose == 1)
+            {
+                var dialogResult = MessageBox.Show("Are you sure want to Close Form..??", "Close Form", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    this.Close();
+                }
+            }
+            else
+            {
+                Close();
+            }
+        }
+        private void BtnSave_Click(object sender, EventArgs e)
+        {
+            _objCompanyUnit.Model.Tag = _Tag;
+            _objCompanyUnit.Model.CompanyUnitId = Convert.ToInt32(TxtDescription.Tag.ToString());
+            if ((_Tag == "EDIT" || _Tag == "DELETE") && Convert.ToInt32(TxtDescription.Tag.ToString()) == 0)
+            {
+                ClearFld();
+                return;
+            }
+
+            _objCompanyUnit.Model.CmpUnitName = TxtDescription.Text;
+            _objCompanyUnit.Model.CmpUnitShortName = TxtShortName.Text;
+            _objCompanyUnit.Model.Address = TxtAddress.Text;
+            _objCompanyUnit.Model.PhoneNo = TxtPhoneNo.Text;
+            _objCompanyUnit.Model.ContactPersonMobileNo = TxtContactPersonMobileNo.Text;
+            _objCompanyUnit.Model.ContactPerson = TxtContactPerson.Text;
+            _objCompanyUnit.Model.ContactPersonPhone = TxtContactPersonPhoneNo.Text;
+            _objCompanyUnit.Model.ContactPersonAdd = TxtContactPersonAdd.Text;
+            _objCompanyUnit.Model.Country = TxtCountry.Text;
+            _objCompanyUnit.Model.City = TxtCity.Text;
+            _objCompanyUnit.Model.Email = TxtEmail.Text;
+            _objCompanyUnit.Model.PhoneNo = TxtPhoneNo.Text;
+            _objCompanyUnit.Model.Fax = TxtFax.Text;
+            _objCompanyUnit.Model.State = TxtState.Text;
+            _objCompanyUnit.Model.BranchId = Convert.ToInt32(((KeyValuePair<string, string>)CmbBranch.SelectedItem).Key);
+            _objCompanyUnit.Model.EnterBy = ClsGlobal.LoginUserCode;
+            _objCompanyUnit.Model.Gadget = "Desktop";
+
+            if (_Tag == "NEW")
+            {
+                if (ClsGlobal.ConfirmSave == 1)
+                {
+                    var dialogResult = MessageBox.Show("Are you sure want to Save New Record..??", "Close Form", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+                    if (dialogResult == DialogResult.Yes)
+                        result = _objCompanyUnit.SaveCompanyUnit();
+                    else
+                        return;
+                }
+                else
+                {
+                    result = _objCompanyUnit.SaveCompanyUnit();
+                }
+            }
+            else
+            {
+                result = _objCompanyUnit.SaveCompanyUnit();
+            }
+         
+            if (!string.IsNullOrEmpty(result))
+            {
+                NavMenuDataList = _objCompanyUnit.GetDataCompanyUnit(0);
+                MessageBox.Show("Data Submit Successfully", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ClearFld();
+                TxtDescription.Focus();
+            }
+            else
+            {
+                MessageBox.Show("Error occured during data submit", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        private void BtnCancel_Click(object sender, EventArgs e)
+        {
+            _Tag = "";
+            ControlEnableDisable(true, false);
+            Text = "Company Unit";
+            ClearFld();
+        }
+        private void BtnDescription_Click(object sender, EventArgs e)
+        {
+            Common.PickList frmPickList = new Common.PickList("CompanyUnit", _SearchKey);
+            if (Common.PickList.dt.Rows.Count > 0)
+            {
+                frmPickList.ShowDialog();
+                if (frmPickList.SelectedList.Count > 0 && _Tag != "NEW")
+                {
+                    DataTable dt = _objCompanyUnit.GetDataCompanyUnit(Convert.ToInt32(frmPickList.SelectedList[0]["CompanyUnitId"].ToString().Trim()));
+                    SetData(dt);
+                }
+                else
+                {
+                    TxtDescription.Tag = "0";
+                    TxtDescription.Tag = "";
+                }
+                frmPickList.Dispose();
+            }
+            else
+            {
+                MessageBox.Show("No List Available in Company Unit !", "Mr. Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                TxtDescription.Focus();
+                return;
+            }
+            TxtDescription.Focus();
+        }
+        private void SetData(DataTable dt)
+        {
+            TxtDescription.Tag = dt.Rows[0]["CompanyUnitId"].ToString();
+            TxtDescription.Text = dt.Rows[0]["CmpUnitName"].ToString();
+            TxtShortName.Text = dt.Rows[0]["CmpUnitShortName"].ToString();
+            TxtCity.Text = dt.Rows[0]["City"].ToString();
+            TxtAddress.Text = dt.Rows[0]["Address"].ToString();
+            TxtPhoneNo.Text = dt.Rows[0]["PhoneNo"].ToString();
+            TxtFax.Text = dt.Rows[0]["Fax"].ToString();
+            TxtCountry.Text = dt.Rows[0]["Country"].ToString();
+            TxtEmail.Text = dt.Rows[0]["Email"].ToString();
+            TxtContactPerson.Text = dt.Rows[0]["ContactPerson"].ToString();
+            TxtContactPersonAdd.Text = dt.Rows[0]["ContactPersonAdd"].ToString();
+            TxtContactPersonMobileNo.Text = dt.Rows[0]["ContactPersonMobileNo"].ToString();
+            TxtContactPersonPhoneNo.Text = dt.Rows[0]["ContactPersonPhoneNo"].ToString();
+            CmbBranch.SelectedValue = dt.Rows[0]["BranchId"].ToString();
+            TxtState.Text = dt.Rows[0]["State"].ToString();
+            TxtDescription.SelectAll();
+        }
+        private void TxtDescription_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (_Tag == "" || ActiveControl == TxtDescription) return;
+            if (TxtDescription.Enabled == false) return;
+
+            if (string.IsNullOrEmpty(TxtDescription.Text))
+            {
+                MessageBox.Show("Company Unit Description Cannot Left Blank...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
+                TxtDescription.Focus();
+                return;
+            }
+            else if (_Tag == "NEW")
+            {
+                if (_objCommon.CheckDescriptionDuplicateRecord(TxtDescription.Text, "CompanyUnit", "CmpUnitName", "CompanyUnitId") == 1)
+                {
+                    MessageBox.Show("Company Unit Description Already Exist...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    e.Cancel = true;
+                    TxtDescription.Focus();
+                    return;
+                }
+                else
+                {
+                    TxtShortName.Text = _objCommon.GenerateShortName(TxtDescription.Text, "CmpUnitName", "CmpUnitShortName", "CompanyUnit");
+                }
+            }
+            else if (_Tag == "EDIT")
+            {
+                if (_objCommon.CheckDescriptionDuplicateRecord(TxtDescription.Text, "CompanyUnit", "CmpUnitName", "CompanyUnitId", Convert.ToInt32(TxtDescription.Tag.ToString())) != 0)
+                {
+                    MessageBox.Show("Company Unit Description Already Exist...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    e.Cancel = true;
+                    return;
+                }
+            }
+        }
+        private void CmbBranch_Validating(object sender, CancelEventArgs e)
+        {
+            if (_Tag == "" || ActiveControl == CmbBranch) return;
+            if (TxtShortName.Enabled == false) return;
+            
+            if (string.IsNullOrEmpty(CmbBranch.Text))
+            {
+                MessageBox.Show("Branch Cannot Left Blank...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
+                CmbBranch.Focus();
+                return;
+            }
+        }
+        private void TxtDescription_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (_Tag == "NEW" && e.KeyCode.ToString() == "" || e.KeyCode.ToString() == "F1")
+            {
+                _SearchKey = string.Empty;
+                BtnSearchDescription.PerformClick();
+            }
+            else
+            {
+                _SearchKey = e.KeyCode.ToString() == "Escape" ? "" : e.KeyCode.ToString();
+                ClsGlobal.MyKeyDown((char)e.KeyCode, e.KeyValue, e.KeyData.ToString(), _Tag, _SearchKey, TxtDescription, BtnSearchDescription, true);
+            }
+        }
+        private void TxtShortName_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (_Tag == "" || ActiveControl == TxtShortName) return;
+            if (TxtShortName.Enabled == false) return;
+
+            if (string.IsNullOrEmpty(TxtShortName.Text.Trim()) && !string.IsNullOrEmpty(TxtDescription.Text.Trim()))
+            {
+                MessageBox.Show("Company Unit ShortName Cannot Left Blank...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
+                TxtShortName.Focus();
+                return;
+            }
+            else if (_Tag == "NEW")
+            {
+                if (_objCommon.CheckShortNameDuplicateRecord(TxtShortName.Text, "CompanyUnit", "CmpUnitShortName", "CompanyUnitId") == 1)
+                {
+                    MessageBox.Show("Company Unit ShortName Already Exist...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    e.Cancel = true;
+                    TxtShortName.Focus();
+                    return;
+                }
+            }
+            else if (_Tag == "EDIT")
+            {
+                if (_objCommon.CheckShortNameDuplicateRecord(TxtShortName.Text, "CompanyUnit", "CmpUnitShortName", "CompanyUnitId", Convert.ToInt32(TxtDescription.Tag.ToString())) != 0)
+                {
+                    MessageBox.Show("Company Unit ShortName Already Exist...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    e.Cancel = true;
+                    return;
+                }
+            }
+        }
+    }
+}

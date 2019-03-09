@@ -1,0 +1,11 @@
+C:\acme\DataAccessLayer\bin\Debug\DataAccessLayer.dll
+C:\acme\DataAccessLayer\bin\Debug\DataAccessLayer.pdb
+C:\acme\DataAccessLayer\bin\Debug\ActiveDataAccess.dll
+C:\acme\DataAccessLayer\bin\Debug\ActiveDataAccess.pdb
+C:\acme\DataAccessLayer\bin\Debug\ActiveDataAccess.xml
+C:\acme\DataAccessLayer\obj\Debug\DataAccessLayer.csprojAssemblyReference.cache
+C:\acme\DataAccessLayer\obj\Debug\DataAccessLayer.csproj.ResolveComReference.cache
+C:\acme\DataAccessLayer\obj\Debug\DataAccessLayer.csproj.CoreCompileInputs.cache
+C:\acme\DataAccessLayer\obj\Debug\DataAccessLayer.csproj.CopyComplete
+C:\acme\DataAccessLayer\obj\Debug\DataAccessLayer.dll
+C:\acme\DataAccessLayer\obj\Debug\DataAccessLayer.pdb

@@ -1,0 +1,248 @@
+﻿using DataAccessLayer.Interface.DataTransaction.Finance;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DataAccessLayer.DataTransaction.Finance
+{
+    public class ClsJournalVouchar : IJournalVoucher
+    {
+        ActiveDataAccess.ActiveDataAccess DAL;
+        public JournalMsaterViewModel Model { get; set; }
+        public List<JournalDetailsViewModel> ModelDetails { get; set; }
+
+        public ClsJournalVouchar()
+        {
+            DAL = new ActiveDataAccess.ActiveDataAccess(Database.DBConnection);
+            Model = new JournalMsaterViewModel();
+            ModelDetails = new List<JournalDetailsViewModel>();
+        }
+
+        public string IsExistsVNumber(string VoucherNo)
+        {
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select VoucherNo from erp.JournalMaster WHERE VoucherNo='" + VoucherNo.Trim() + "'").Tables[0];
+            if (dt.Rows.Count == 0)
+            {
+                return "";
+            }
+            else
+            {
+                return dt.Rows[0][""].ToString();
+            }
+        }
+
+        public string SaveJournal()
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("BEGIN TRANSACTION \n");
+            strSql.Append("BEGIN TRY \n");
+            strSql.Append("Set @VoucherNo ='" + Model.VoucherNo.Trim() + "' \n");
+
+            if (Model.Tag == "NEW")
+            {
+                strSql.Append("INSERT INTO [ERP].[JournalMaster]([VoucherNo],[VDate],[VTime],[VMiti],[CurrencyId],[CurrencyRate],[DepartmentId1],[DepartmentId2],[DepartmentId3],[DepartmentId4], \n");
+                strSql.Append("[BranchId],[CompanyUnitId],[ReferenceNo],[ReferenceDate],[EnterBy],[EnterDate],[Remarks],[SourceModule],[JVType],[IsReconcile],\n");
+                strSql.Append("[ReconcileBy],[ReconcileDate],[IsPosted],[PostedBy],[PostedDate],[IsAuthorized],[AuthorizedBy],[AuthorizedDate],[AuthorizeRemarks],[Gadget])\n");
+                strSql.Append("Select @VoucherNo,'" + Model.VDate.ToString("yyyy-MM-dd") + "','" + Model.VDate.ToString("yyyy-MM-dd") + ' ' + DateTime.Now.ToShortTimeString() + "','" + Model.VMiti.ToString() + "', \n");
+                strSql.Append(" " + ((Model.CurrencyId == 0) ? "null" : "'" + Model.CurrencyId + "'") + ",'" + Model.CurrencyRate + "'," + ((Model.DepartmentId1 == 0) ? "null" : "'" + Model.DepartmentId1 + "'") + "," + ((Model.DepartmentId2 == 0) ? "null" : "'" + Model.DepartmentId2 + "'") + ",  \n");
+                strSql.Append("" + ((Model.DepartmentId3 == 0) ? "null" : "'" + Model.DepartmentId3 + "'") + ", " + ((Model.DepartmentId4 == 0) ? "null" : "'" + Model.DepartmentId4 + "'") + "," + ((Model.BranchId == 0) ? "null" : "'" + Model.BranchId + "'") + "," + ((Model.CompanyUnitId == 0) ? "null" : "'" + Model.CompanyUnitId + "'") + ",  \n");
+                strSql.Append("" + ((Model.ReferenceNo == "") ? "null" : "'" + Model.ReferenceNo + "'") + ", " + ((Model.ReferenceDate.ToString() == "") ? "null" : "'" + Model.ReferenceDate.ToString() + "'") + "," + ((Model.EnterBy == "") ? "null" : "'" + Model.EnterBy + "'") + ",GETDATE()," + ((Model.Remarks == "") ? "null" : "'" + Model.Remarks + "'") + ",'" + Model.SourceModule + "','" + Model.JVType + "',\n");
+                strSql.Append(" '" + Model.IsReconcile + "'," + ((Model.ReconcileBy == "") ? "null" : "'" + Model.ReconcileBy + "'") + ",  " + ((Model.ReconcileDate.ToString() == "") ? "null" : "'" + Model.ReconcileDate.ToString() + "'") + ", '" + Model.IsPosted + "',  " + ((Model.PostedBy == "") ? "null" : "'" + Model.PostedBy + "'") + ",  " + ((Model.PostedDate.ToString() == "") ? "null" : "'" + Model.PostedDate.ToString() + "'") + ",'" + Model.IsAuthorized + "',  " + ((Model.AuthorizedBy == "") ? "null" : "'" + Model.AuthorizedBy + "'") + ", \n");
+                strSql.Append("  " + ((Model.AuthorizedDate.ToString() == "") ? "null" : "'" + Model.AuthorizedDate.ToString() + "'") + ",  " + ((Model.AuthorizeRemarks == "") ? "null" : "'" + Model.AuthorizeRemarks + "'") + ", '" + Model.Gadget + "' \n");
+
+                strSql.Append("Update ERP.DocumentNumbering set DocCurrentNo = DocCurrentNo + 1 where DocId =" + Model.DocId + "\n");
+            }
+            else if (Model.Tag == "EDIT")
+            {
+                strSql.Append("UPDATE [ERP].[JournalMaster] SET [VDate] = '" + Model.VDate.ToString("yyyy-MM-dd") + "',[VTime] = '" + Model.VDate.ToString("yyyy-MM-dd") + ' ' + DateTime.Now.ToShortTimeString() + "',[VMiti] = '" + Model.VMiti.ToString() + "', \n");
+                strSql.Append("[CurrencyId] = " + ((Model.CurrencyId == 0) ? "null" : "'" + Model.CurrencyId + "'") + ",[CurrencyRate] = '" + Model.CurrencyRate + "', \n");
+                strSql.Append("[DepartmentId1] = " + ((Model.DepartmentId1 == 0) ? "null" : "'" + Model.DepartmentId1 + "'") + ",[DepartmentId2] =" + ((Model.DepartmentId2 == 0) ? "null" : "'" + Model.DepartmentId2 + "'") + ",[DepartmentId3] = " + ((Model.DepartmentId3 == 0) ? "null" : "'" + Model.DepartmentId3 + "'") + ",[DepartmentId4] = " + ((Model.DepartmentId4 == 0) ? "null" : "'" + Model.DepartmentId4 + "'") + ", \n");
+                strSql.Append("[BranchId] = " + ((Model.BranchId == 0) ? "null" : "'" + Model.BranchId + "'") + ",[CompanyUnitId] = " + ((Model.CompanyUnitId == 0) ? "null" : "'" + Model.CompanyUnitId + "'") + ",[ReferenceNo] = " + ((Model.ReferenceNo == "") ? "null" : "'" + Model.ReferenceNo + "'") + ",[ReferenceDate] = " + ((Model.ReferenceDate.ToString() == "") ? "null" : "'" + Convert.ToDateTime(Model.ReferenceDate).ToString("yyyy-MM-dd") + "'") + ", \n");
+                strSql.Append("[EnterBy] = " + ((Model.EnterBy == "") ? "null" : "'" + Model.EnterBy + "'") + ",[EnterDate] = GETDATE(),[Remarks] = " + ((Model.Remarks == "") ? "null" : "'" + Model.Remarks + "'") + " ,[SourceModule]='" + Model.SourceModule + "',[JVType]='" + Model.JVType + "'  \n");
+                strSql.Append("WHERE [VoucherNo]= @VoucherNo \n");
+
+                strSql.Append("DELETE FROM [ERP].[JournalDetails] WHERE VoucherNo ='" + Model.VoucherNo + "' \n");
+            }
+            else if (Model.Tag == "DELETE")
+            {
+                strSql.Append("DELETE FROM [ERP].[JournalDetails] WHERE VoucherNo ='" + Model.VoucherNo + "' \n");
+                strSql.Append("DELETE FROM [ERP].[JournalMaster] WHERE VoucherNo = '" + Model.VoucherNo + "' \n");
+                strSql.Append("SET @VoucherNo ='1'");
+                ModelDetails.Clear();
+            }
+
+            foreach (JournalDetailsViewModel det in ModelDetails)
+            {
+                strSql.Append("INSERT INTO [ERP].[JournalDetails]([VoucherNo],[CurrencyRate],[SNO],[LedgerId],[SubLedgerId],[SalesmanId],[DepartmentIdDet1],[DepartmentIdDet2],[DepartmentIdDet3],[DepartmentIdDet4],[AmtType],[Amount],[Narration])\n");
+                strSql.Append("Select @VoucherNo,'" + det.CurrencyRate + "','" + det.SNO + "','" + det.LedgerId + "'," + ((det.SubLedgerId == 0) ? "null" : "'" + det.SubLedgerId + "'") + "," + ((det.SalesmanId == 0) ? "null" : "'" + det.SalesmanId + "'") + ", \n");
+                strSql.Append(" " + ((det.DepartmentIdDet1 == 0) ? "null" : "'" + det.DepartmentIdDet1 + "'") + "," + ((det.DepartmentIdDet2 == 0) ? "null" : "'" + det.DepartmentIdDet2 + "'") + "," + ((det.DepartmentIdDet3 == 0) ? "null" : "'" + det.DepartmentIdDet3 + "'") + "," + ((det.DepartmentIdDet4 == 0) ? "null" : "'" + det.DepartmentIdDet4 + "'") + ", \n");
+                strSql.Append(" '" + det.AmtType + "','" + det.Amount + "','" + det.Narration + "' \n");
+            }
+            ModelDetails.Clear();
+            if (Model.Tag != "NEW")
+            {
+                strSql.Append(" Delete from[ERP].[FinanceTransaction] Where [VoucherNo] = @VoucherNo and[Source] = 'JV' \n");
+            }
+
+            //strSql.Append("INSERT INTO[ERP].[FinanceTransaction] ([VoucherNo],[VDate],[VMiti],[VTime],[CurrencyId],[CurrencyRate],[DepartmentId1],[DepartmentId2],[DepartmentId3],[DepartmentId4]\n");
+            //strSql.Append(",[BranchId],[CompanyUnitId],[SalesmanId],[LedgerId],[SubLedgerId],[DrAmt],[CrAmt],[LocalDrAmt],[LocalCrAmt]\n");
+            //strSql.Append(",[ReconcileDate],[SNO],[CbCode],[EffecDate],[TDueDate],[RefVNo],[ClearingDate],[ClearedBy]\n");
+            //strSql.Append(",[EnterBy],[Naration],[Remarks],[Source],[chequeNo],[ChequeDate],IsBillCancel)\n");
+            //strSql.Append("(select[VoucherNo],[VDate],[VMiti],[VTime],[CurrencyId],[CurrencyRate],[DepartmentId1],[DepartmentId2],[DepartmentId3],[DepartmentId4]\n");
+            //strSql.Append(",[BranchId],[CompanyUnitId],[SalesmanId],[LedgerId],[SubLedgerId],[DrAmt],[CrAmt],[LocalDrAmt],[LocalCrAmt]\n");
+            //strSql.Append(",[ReconcileDate],[SNO],[CbCode],[EffecDate],[TDueDate],[RefVNo],[ClearingDate],[ClearedBy]\n");
+            //strSql.Append(",[EnterBy],[Naration],[Remarks],[Source],[chequeNo],[ChequeDate],IsBillCancel\n");
+            //strSql.Append("from (Select '0' as VoucherNo, (select StartDate-1 from ERP.CompanyInfo ) as VDate,(select MMiti from erp.DateMiti  where  Mdate=(select convert(datetime, StartDate-1,105) from ERP.CompanyInfo )) as VMiti , (select StartDate-1 from ERP.CompanyInfo ) as VTime,JM.CurrencyId,JM.CurrencyRate,\n");
+            //strSql.Append("(case when JD.DepartmentIdDet1 is not null then JD.DepartmentIdDet1 else JM.DepartmentId1 end) as DepartmentId1, \n");
+            //strSql.Append("(case when JD.DepartmentIdDet2 is not null then JD.DepartmentIdDet2 else JM.DepartmentId2 end) as DepartmentId2, \n");
+            //strSql.Append("(case when JD.DepartmentIdDet3 is not null then JD.DepartmentIdDet3 else JM.DepartmentId3 end) as DepartmentId3, \n");
+            //strSql.Append("(case when JD.DepartmentIdDet4 is not null then JD.DepartmentIdDet4 else JM.DepartmentId4 end) as DepartmentId4, \n");
+            //strSql.Append("JM.BranchId,JM.CompanyUnitId,JD.SalesmanId, JD.LedgerId,JD.SubLedgerId,\n");
+            //strSql.Append("Case when AmtType = 'D' then Amount else 0 end as DrAmt,\n");
+            //strSql.Append("Case when AmtType = 'C' then Amount else 0 end as CrAmt,\n");
+            //strSql.Append("Case when AmtType = 'D' then Amount else 0 end as LocalDrAmt, \n");
+            //strSql.Append("Case when AmtType = 'C' then Amount else 0 end as LocalCrAmt, \n");
+            //strSql.Append("JM.ReconcileDate,JD.Sno,null as CbCode,null  as EffecDate,null  as TDueDate,null as RefVNo,\n");
+            //strSql.Append("null as [ClearingDate],null as[ClearedBy],EnterBy,null as Naration,Remarks,'OB' as Source,null as chequeNo,null as ChequeDate,NULL as IsBillCancel \n");
+            //strSql.Append("from ERP.JournalMaster JM left Join ERP.JournalDetails JD On JD.VoucherNo = JM.VoucherNo \n");
+            //strSql.Append("Union All \n");
+            //strSql.Append("Select JM.VoucherNo, JM.VDate,JM.VMiti ,JM.VTime,JM.CurrencyId,JM.CurrencyRate,\n");
+            //strSql.Append("(case when JD.DepartmentIdDet1 is not null then JD.DepartmentIdDet1 else JM.DepartmentId1 end) as DepartmentId1, \n");
+            //strSql.Append("(case when JD.DepartmentIdDet2 is not null then JD.DepartmentIdDet2 else JM.DepartmentId2 end) as DepartmentId2, \n");
+            //strSql.Append("(case when JD.DepartmentIdDet3 is not null then JD.DepartmentIdDet3 else JM.DepartmentId3 end) as DepartmentId3, \n");
+            //strSql.Append("(case when JD.DepartmentIdDet4 is not null then JD.DepartmentIdDet4 else JM.DepartmentId4 end) as DepartmentId4, \n");
+            //strSql.Append("JM.BranchId,JM.CompanyUnitId,JD.SalesmanId, JD.LedgerId,JD.SubLedgerId,\n");
+            //strSql.Append("Case when AmtType = 'D' then Amount else 0 end as DrAmt,\n");
+            //strSql.Append("Case when AmtType = 'C' then Amount else 0 end as CrAmt,\n");
+            //strSql.Append("Case when AmtType = 'D' then Amount else 0 end as LocalDrAmt, \n");
+            //strSql.Append("Case when AmtType = 'C' then Amount else 0 end as LocalCrAmt, \n");
+            //strSql.Append("JM.ReconcileDate,JD.Sno,null as CbCode,null  as EffecDate,null  as TDueDate,null as RefVNo,\n");
+            //strSql.Append("null as [ClearingDate],null as[ClearedBy],EnterBy,null as Naration,Remarks,'JV' as Source,null as chequeNo,null as ChequeDate,NULL as IsBillCancel \n");
+            //strSql.Append("from ERP.JournalMaster JM left Join ERP.JournalDetails JD On JD.VoucherNo = JM.VoucherNo \n");
+            //strSql.Append(")as FinanceTran where VoucherNo =@VoucherNo and source='JV' ) \n");
+
+            strSql.Append("INSERT INTO[ERP].[FinanceTransaction] ([VoucherNo],[VDate],[VMiti],[VTime],[CurrencyId],[CurrencyRate],[DepartmentId1],[DepartmentId2],[DepartmentId3],[DepartmentId4] \n");
+            strSql.Append(",[BranchId],[CompanyUnitId],[SalesmanId],[LedgerId],[SubLedgerId],[DrAmt],[CrAmt],[LocalDrAmt],[LocalCrAmt] \n");
+            strSql.Append(",[ReconcileDate],[SNO],[CbCode],[EffecDate],[TDueDate],[RefVNo],[ClearingDate],[ClearedBy] \n");
+            strSql.Append(",[EnterBy],[Naration],[Remarks],[Source],[chequeNo],[ChequeDate],IsBillCancel) \n");
+            strSql.Append("(select[VoucherNo],[VDate],[VMiti],[VTime],[CurrencyId],[CurrencyRate],[DepartmentId1],[DepartmentId2],[DepartmentId3],[DepartmentId4] \n");
+            strSql.Append(",[BranchId],[CompanyUnitId],[SalesmanId],[LedgerId],[SubLedgerId],[DrAmt],[CrAmt],[LocalDrAmt],[LocalCrAmt] \n");
+            strSql.Append(",[ReconcileDate],[SNO],[CbCode],[EffecDate],[TDueDate],[RefVNo],[ClearingDate],[ClearedBy] \n");
+            strSql.Append(",[EnterBy],[Naration],[Remarks],[Source],[chequeNo],[ChequeDate],IsBillCancel \n");
+            strSql.Append("from ( \n");
+            strSql.Append("Select JM.VoucherNo, JM.VDate,JM.VMiti ,JM.VTime,JM.CurrencyId,JM.CurrencyRate, \n");
+            strSql.Append("(case when JD.DepartmentIdDet1 is not null then JD.DepartmentIdDet1 else JM.DepartmentId1 end) as DepartmentId1, \n");
+            strSql.Append("(case when JD.DepartmentIdDet2 is not null then JD.DepartmentIdDet2 else JM.DepartmentId2 end) as DepartmentId2, \n");
+            strSql.Append("(case when JD.DepartmentIdDet3 is not null then JD.DepartmentIdDet3 else JM.DepartmentId3 end) as DepartmentId3, \n");
+            strSql.Append("(case when JD.DepartmentIdDet4 is not null then JD.DepartmentIdDet4 else JM.DepartmentId4 end) as DepartmentId4, \n");
+            strSql.Append("JM.BranchId,JM.CompanyUnitId,JD.SalesmanId, JD.LedgerId,JD.SubLedgerId, \n");
+            strSql.Append("Case when AmtType = 'D' then Amount else 0 end as DrAmt, \n");
+            strSql.Append("Case when AmtType = 'C' then Amount else 0 end as CrAmt, \n");
+            strSql.Append("Case when AmtType = 'D' then Amount else 0 end as LocalDrAmt, \n");
+            strSql.Append("Case when AmtType = 'C' then Amount else 0 end as LocalCrAmt, \n");
+            strSql.Append("JM.ReconcileDate,JD.Sno,null as CbCode,null  as EffecDate,null  as TDueDate,null as RefVNo, \n");
+            strSql.Append("null as [ClearingDate],null as[ClearedBy],EnterBy,jd.Narration as Naration,Remarks,'JV' as Source,null as chequeNo,null as ChequeDate,NULL as IsBillCancel \n");
+            strSql.Append("from ERP.JournalMaster JM left Join ERP.JournalDetails JD On JD.VoucherNo = JM.VoucherNo \n");
+            strSql.Append("where JM.VoucherNo =@VoucherNo \n");
+            strSql.Append(")as FinanceTran) \n");
+
+            strSql.Append("\n COMMIT TRANSACTION \n");
+            strSql.Append("END TRY \n");
+            strSql.Append("BEGIN CATCH \n");
+            strSql.Append("ROLLBACK TRANSACTION \n");
+            strSql.Append("Set @VoucherNo = '' \n");
+            strSql.Append("END CATCH \n");
+
+            SqlParameter[] p = new SqlParameter[1];
+            p[0] = new SqlParameter("@VoucherNo", SqlDbType.VarChar, 25)
+            {
+                Direction = ParameterDirection.Output
+            };
+            DAL.ExecuteNonQuery(CommandType.Text, strSql.ToString(), p);
+            return p[0].Value.ToString();
+        }
+
+        public DataSet GetDataJournal(string VoucherNo)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select JM.*,D1.DepartmentId as DepartmentId1,D1.DepartmentDesc as DepartmentDesc1,D2.DepartmentId as DepartmentId2,D2.DepartmentDesc as DepartmentDesc2,D3.DepartmentId as DepartmentId3,D3.DepartmentDesc as DepartmentDesc3,D4.DepartmentId as DepartmentId4,D4.DepartmentDesc as DepartmentDesc4,Cur.CurrencyDesc  \n");
+            strSql.Append("from ERP.[JournalMaster] as JM  \n");
+            strSql.Append("Left join ERP.Currency as Cur on cur.CurrencyId = JM.CurrencyId \n");
+            strSql.Append("Left Join ERP.Department as D1 on JM.DepartmentId1 = D1.DepartmentId \n");
+            strSql.Append("Left Join ERP.Department as D2 on JM.DepartmentId2 = D2.DepartmentId \n");
+            strSql.Append("Left Join ERP.Department as D3 on JM.DepartmentId3 = D3.DepartmentId \n");
+            strSql.Append("Left Join ERP.Department as D4 on JM.DepartmentId4 = D4.DepartmentId \n");
+            strSql.Append("Where JM.VoucherNo = '" + VoucherNo.Trim() + "' \n\n");
+            strSql.Append("Select JD.*,D1.DepartmentDesc as DepartmentDesc1,D2.DepartmentDesc as DepartmentDesc2,D3.DepartmentDesc as DepartmentDesc3,D4.DepartmentDesc as DepartmentDesc4,SalesmanDesc,  \n");
+            strSql.Append("SubLeg.SubledgerDesc,GL.GlDesc, Gl.GlCategory \n");
+            strSql.Append("from ERP.JournalDetails as JD \n");
+            strSql.Append("Left Join ERP.Department as D1 on JD.DepartmentIdDet1 = D1.DepartmentId \n");
+            strSql.Append("Left Join ERP.Department as D2 on JD.DepartmentIdDet2 = D2.DepartmentId \n");
+            strSql.Append("Left Join ERP.Department as D3 on JD.DepartmentIdDet3 = D3.DepartmentId \n");
+            strSql.Append("Left Join ERP.Department as D4 on JD.DepartmentIdDet4 = D4.DepartmentId \n");
+            strSql.Append("Left join ERP.SubLedger as SubLeg on JD.SubledgerId =SubLeg.SubledgerId\n");
+            strSql.Append("Left join ERP.SalesMan on JD.SalesmanId = Salesman.salesmanId  \n");
+            strSql.Append("Left join ERP.GeneralLedger as GL on GL.LedgerId = JD.LedgerId \n");
+            strSql.Append("Where VoucherNo = '" + VoucherNo.Trim() + "'");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString());
+        }
+    }
+
+    public class JournalMsaterViewModel
+    {
+        public string Tag { get; set; }
+        public int DocId { get; set; }
+        public string VoucherNo { get; set; }
+        public DateTime VDate { get; set; }
+        public DateTime VTime { get; set; }
+        public string VMiti { get; set; }
+        public int CurrencyId { get; set; }
+        public decimal CurrencyRate { get; set; }
+        public int DepartmentId1 { get; set; }
+        public int DepartmentId2 { get; set; }
+        public int DepartmentId3 { get; set; }
+        public int DepartmentId4 { get; set; }
+        public int BranchId { get; set; }
+        public int CompanyUnitId { get; set; }
+        public string ReferenceNo { get; set; }
+        public Nullable<DateTime> ReferenceDate { get; set; }
+        public string EnterBy { get; set; }
+        public DateTime EnterDate { get; set; }
+        public string Remarks { get; set; }
+        public string SourceModule { get; set; }
+        public string JVType { get; set; }
+        public int IsReconcile { get; set; }
+        public string ReconcileBy { get; set; }
+        public Nullable<DateTime> ReconcileDate { get; set; }
+        public int IsPosted { get; set; }
+        public string PostedBy { get; set; }
+        public Nullable<DateTime> PostedDate { get; set; }
+        public int IsAuthorized { get; set; }
+        public string AuthorizedBy { get; set; }
+        public Nullable<DateTime> AuthorizedDate { get; set; }
+        public string AuthorizeRemarks { get; set; }
+        public string Gadget { get; set; }
+
+    }
+
+    public class JournalDetailsViewModel
+    {
+        public string VoucherNo { get; set; }
+        public decimal CurrencyRate { get; set; }
+        public int SNO { get; set; }
+        public int LedgerId { get; set; }
+        public int SubLedgerId { get; set; }
+        public int SalesmanId { get; set; }
+        public int DepartmentIdDet1 { get; set; }
+        public int DepartmentIdDet2 { get; set; }
+        public int DepartmentIdDet3 { get; set; }
+        public int DepartmentIdDet4 { get; set; }
+        public string AmtType { get; set; }
+        public decimal Amount { get; set; }
+        public string Narration { get; set; }
+    }
+}

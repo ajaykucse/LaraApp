@@ -1,0 +1,26 @@
+﻿using DataAccessLayer.DataTransaction.Sales;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DataAccessLayer.Interface.DataTransaction.Sales
+{
+    public interface ISalesInvoice
+    {
+        string IsExistsVNumber(string VoucherNo);
+        SalesInvoiceMasterViewModel Model { get; set; }
+        List<SalesInvoiceDetailsViewModel> ModelDetails { get; set; }
+        List<TermViewModel> ModelTerms { get; set; }
+        BillingAddressViewModel ModelBillAddress { get; set; }
+        OtherDetailsViewModel ModelOtherDetails { get; set; }
+        SalesIrdViewModel SalesIrd { get; set; }
+        string SaveSalesInvoice();
+        DataSet GetDataSalesVoucher(string VoucherNo);
+        string BillCancel(string VoucherNo);
+        DataTable GetMemberPercent(string member);
+        DataSet GetDataRestaurantSalesVoucher(string VoucherNo);
+    }
+}

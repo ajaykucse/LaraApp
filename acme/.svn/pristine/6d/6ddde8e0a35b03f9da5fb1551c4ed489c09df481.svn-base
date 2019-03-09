@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DataAccessLayer.SystemSetting
+{
+    public class ClsDocumentNumbering
+    {
+        ActiveDataAccess.ActiveDataAccess DAL;
+        public DocumentNumberingViewModel Model { get; set; }
+        public ClsDocumentNumbering()
+        {
+            DAL = new ActiveDataAccess.ActiveDataAccess(Database.DBConnection);
+            Model = new DocumentNumberingViewModel();
+        }
+
+        public string SaveDocNumbering()
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("BEGIN TRANSACTION \n");
+            strSql.Append("BEGIN TRY \n");
+            if (Model.Tag == "NEW")
+            {
+                strSql.Append("declare @DocId int=(select ISNULL((Select Top 1 max(cast(DocId as int))  from ERP.DocumentNumbering),0)+1) \n");
+                strSql.Append("Insert into ERP.DocumentNumbering([DocId],[DocModule],[DocDesc],[DocStartDate],[DocEndDate],[DocType],[DocPrefix],[DocSufix],[DocBodyLength],[DocTotalLength],[DocIsNumericFill],[DocFillCharacter],[DocStartNo],[DocCurrentNo],[DocEndNo],[PrintDesignId],[Status],[EnterBy],[EnterDate],NumericalStyle,Gadget) \n");
+                strSql.Append("select @DocId,'" + Model.DocModule.Trim() + "','" + Model.DocDesc.Trim() + "','" + Model.DocStartDate.ToString("yyyy-MM-dd HH:mm:ss") + "','" + Model.DocEndDate.ToString("yyyy-MM-dd HH:mm:ss") + "'," + ((Model.DocType.Trim() == "") ? "null" : "'" + Model.DocType.Trim().Replace("'", "''") + "'") + "," + ((Model.DocPrefix.Trim() == "") ? "null" : "'" + Model.DocPrefix.Trim().Replace("'", "''") + "'") + "," + ((Model.DocSufix.Trim() == "") ? "null" : "'" + Model.DocSufix.Trim().Replace("'", "''") + "'") + ",'" + Model.DocBodyLength + "','" + Model.DocTotalLength + "','" + Model.DocIsNumericFill + "'," + ((Model.DocFillCharacter.Trim() == "") ? "null" : "'" + Model.DocFillCharacter.Trim().Replace("'", "''") + "'") + ",'" + Model.DocStartNo + "','" + Model.DocCurrentNo + "','" + Model.DocEndNo + "'," + ((Model.PrintDesignId == 0) ? "null" : "'" + Model.PrintDesignId + "'") + ",'" + Model.Status.ToString().ToLower() + "','" + Model.EnterBy.Trim() + "',GETDATE(),'" + Model.NumericalStyle + "','" + Model.Gadget + "'");
+                strSql.Append("SET @VNo =@DocId");
+            }
+            else if (Model.Tag == "EDIT")
+            {
+                strSql.Append("UPDATE ERP.DocumentNumbering SET [DocDesc] = '" + Model.DocDesc.Trim() + "',[DocStartDate] = '" + Model.DocStartDate.ToString("yyyy-MM-dd HH:mm:ss") + "',[DocEndDate] = '" + Model.DocEndDate.ToString("yyyy-MM-dd HH:mm:ss") + "',[DocType] = " + ((Model.DocType.Trim() == "") ? "null" : "'" + Model.DocType.Trim().Replace("'", "''") + "'") + ",[DocPrefix] = " + ((Model.DocPrefix.Trim() == "") ? "null" : "'" + Model.DocPrefix.Trim().Replace("'", "''") + "'") + ",[DocSufix] = " + ((Model.DocSufix.Trim() == "") ? "null" : "'" + Model.DocSufix.Trim().Replace("'", "''") + "'") + ",[DocBodyLength] = '" + Model.DocBodyLength + "',[DocTotalLength] = '" + Model.DocTotalLength + "',[DocIsNumericFill] = '" + Model.DocIsNumericFill + "',[DocFillCharacter] = '" + Model.DocFillCharacter.Trim() + "',[DocStartNo] = '" + Model.DocStartNo + "',[DocCurrentNo] = '" + Model.DocCurrentNo + "',[DocEndNo] = '" + Model.DocEndNo + "',[PrintDesignId] = " + ((Model.PrintDesignId == 0) ? "null" : "'" + Model.PrintDesignId + "'") + ",[Status]='" + Model.Status.ToString().ToLower() + "', NumericalStyle='" + Model.NumericalStyle + "',Gadget='" + Model.Gadget + "' WHERE DocId = '" + Model.DocId + "'");
+                strSql.Append("SET @VNo ='" + Model.DocId + "'");
+            }
+            else if (Model.Tag == "DELETE")
+            {
+                strSql.Append("DELETE FROM ERP.DocumentNumbering WHERE DocId = '" + Model.DocId + "' \n");
+                strSql.Append("SET @VNo ='1'");
+            }
+
+            strSql.Append("\n COMMIT TRANSACTION \n");
+            strSql.Append("END TRY \n");
+            strSql.Append("BEGIN CATCH \n");
+            strSql.Append("ROLLBACK TRANSACTION \n");
+            strSql.Append("Set @VNo = '' \n");
+            strSql.Append("END CATCH \n");
+
+            SqlParameter[] p = new SqlParameter[1];
+            p[0] = new SqlParameter("@VNo", SqlDbType.VarChar, 25);
+            p[0].Direction = ParameterDirection.Output;
+            DAL.ExecuteNonQuery(CommandType.Text, strSql.ToString(), p);
+            return p[0].Value.ToString();
+        }
+		
+		public DataTable BranchListForDocMapping(string DocId)
+		{
+			return DAL.ExecuteDataset(CommandType.Text, "select 0 AS S,'True'as Tag,B.BranchName,B.BranchId , DocStartDate ,DocEndDate from  ERP.Branch B left join  ERP.DocumentNumberingBranchMapping DBM on B.BranchId=DBM.BranchId where DBM.DocId in('"+ DocId + "') Union All select 1 AS S,'False'as Tag,B.BranchName,B.BranchId ,'','' from  ERP.Branch B left join  ERP.DocumentNumberingBranchMapping DBM on B.BranchId=DBM.BranchId where DBM.DocId IS Null Or  DBM.DocId  Not in('" + DocId + "')  order by S ").Tables[0];
+		}
+		public string IsExistsDocPrefix(string DocModule)
+		{
+			DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select  DocPrefix from  ERP.DocumentNumbering where DocPrefix='" + DocModule.Trim() + "' ").Tables[0];
+			if (dt.Rows.Count == 0)
+				return "";
+			else
+				return dt.Rows[0]["DocPrefix"].ToString();
+		}
+
+		public DataTable GetDataDocNumbering(int DocId)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select DN.*,PS.DesignName from ERP.DocumentNumbering DN left join ERP.PrintSetting PS on DN.PrintDesignId=PS.PrintDesignId where DocId='" + DocId + "'").Tables[0];
+        }
+    }
+
+    public class DocumentNumberingViewModel
+    {
+        public string Tag { get; set; }
+        public int DocId { get; set; }
+        public string DocModule { get; set; }
+        public string UserCode { get; set; }
+        public string DocDesc { get; set; }
+        public DateTime DocStartDate { get; set; }
+        public string DocStartMiti { get; set; }
+        public DateTime DocEndDate { get; set; }
+        public string DocEndMiti { get; set; }
+        public string DocType { get; set; }
+        public string DocPrefix { get; set; }
+        public string DocSufix { get; set; }
+        public double DocBodyLength { get; set; }
+        public double DocTotalLength { get; set; }
+        public bool DocIsNumericFill { get; set; }
+        public string DocFillCharacter { get; set; }
+        public int BranchId { get; set; }
+        public int CompanyUnitId { get; set; }
+        public double DocStartNo { get; set; }
+        public double DocCurrentNo { get; set; }
+        public double DocEndNo { get; set; }
+        public int PrintDesignId { get; set; }
+        public bool Status { get; set; }
+        public string EnterBy { get; set; }
+        public DateTime EnterDate { get; set; }
+        public string NumericalStyle{ get; set; }
+        public string Gadget { get; set; }
+    }
+}

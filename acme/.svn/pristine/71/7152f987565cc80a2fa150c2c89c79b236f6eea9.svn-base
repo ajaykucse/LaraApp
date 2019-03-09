@@ -1,0 +1,21 @@
+﻿<input type="hidden" id="txtTag" name="txtTag" value="" />
+<input type="hidden" id="txtCode" name="txtCode" value="" />
+<div class="clearfix" style="height: 15px;"></div>
+<label class="col-md-2">Sub Group Name</label>
+<div class="col-md-4">
+    <input type="text" class="form-control FocusControlColor" id="txtDesc" name="txtDesc" maxlength="56" value="" required />
+</div>
+<label class="col-md-2">Code</label>
+<div class="col-md-4">
+    <input type="text" class="form-control FocusControlColor" id="txtShortName" name="txtShortName" maxlength="25" value="" required />
+</div>
+<div class="clearfix" style="height: 35px;"></div>
+<label class="col-md-2">Account Group</label>
+<div class="col-md-4">
+    <select class="form-control FocusControlColor" id="txtPrimaryGrp" name="txtPrimaryGrp">
+        <option value="Assets">Santosh</option>
+        <option value="Expenditure">Expenditure</option>
+        <option value="Income">Income</option>
+        <option value="Liabilities">Liabilities</option>
+    </select>
+</div>

@@ -1,0 +1,387 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data;
+using System.Data.SqlClient;
+using DataAccessLayer.Common;
+using DataAccessLayer.Interface.MasterSetup;
+
+namespace DataAccessLayer.MasterSetup
+{
+    public class ClsProduct : IProduct
+    {
+        ActiveDataAccess.ActiveDataAccess DAL;
+        public ProductViewModel Model { get; set; }
+        public List<PurchaseProductTerm> ModelPurchaseProductTerm { get; set; }
+        public List<SalesProductTerm> ModelSalesProductTerm { get; set; }
+        public List<ProductMappingList> ModelProductMappingList { get; set; }
+        public List<ProductCounterMappingList> ModelProductCounterMappingList { get; set; }
+
+        public ClsProduct()
+        {
+            DAL = new ActiveDataAccess.ActiveDataAccess(Database.DBConnection);
+            Model = new ProductViewModel();
+            ModelPurchaseProductTerm = new List<PurchaseProductTerm>();
+            ModelSalesProductTerm = new List<SalesProductTerm>();
+            ModelProductMappingList = new List<ProductMappingList>();
+            ModelProductCounterMappingList = new List<ProductCounterMappingList>();
+        }
+        public string SaveProduct()
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("BEGIN TRANSACTION \n");
+            strSql.Append("BEGIN TRY \n");
+            if (Model.Tag == "NEW")
+            {
+                strSql.Append("declare @ProductId int=(select ISNULL((Select Top 1 max(cast(productId as int))  from ERP.Product),0)+1) \n");
+                strSql.Append("insert into ERP.product(ProductId, ProductDesc, ProductShortName, ProductPrintingName, GenericName, ProductAlias,ProductDescription, ProductCategory, ProductType, \n");
+                strSql.Append("ValuationTech, ProductGrpId, PGrpId1, PGrpId2, ProductSubGrpId, IsBatchwise, IsSerialWise, IsSizewise, IsExpiryDate, \n");
+                strSql.Append("IsManufacturingDate, SerialNo, PartsNo, ProductUnitId, QtyConv, ProductAltUnitId, AltConv, BuyRate, SalesRate, Margin1, TradeRate,\n");
+                strSql.Append("Margin2, MRP, MRRate, MaxStock, MinStock, ReorderLevel, ReorderQty, PercentDisc, MinQty, MinDisc, MaxQty, MaxDisc,\n");
+                strSql.Append("IsTaxable, TaxRate, PurchaseLedgerId, PurchaseReturnLedgerId, SalesLedgerId, SalesReturnLedgerId, PLOpeningLedgerId, \n");
+                strSql.Append("PLClosingLedgerId, BSClosingLedgerId, DepreciationType, DepreciationLedgerId, DepreciationRate, PImage, DepartmentId, \n");
+                strSql.Append("DepartmentId1, DepartmentId2, DepartmentId3, EnterBy, EnterDate, Status, BarCodeNo2, BarCodeNo1,Gadget)\n");
+                strSql.Append("select @ProductId,N'" + Model.ProductDesc.Trim().Replace("'", "''") + "',N'" + Model.ProductShortName.Trim().Replace("'", "''") + "'," + ((Model.ProductPrintingName == "") ? "null" : "N'" + Model.ProductPrintingName.Trim().Replace("'", "''") + "'") + ",\n");
+                strSql.Append("" + ((Model.GenericName == "") ? "null" : "N'" + Model.GenericName.Trim().Replace("'", "''") + "'") + "," + ((Model.ProductAlias == "") ? "null" : "N'" + Model.ProductAlias.Trim().Replace("'", "''") + "'") + "," + ((Model.ProductDescription == "") ? "null" : "N'" + Model.ProductDescription.Trim().Replace("'", "''") + "'") + ",N'" + Model.ProductCategory.Trim().Replace("'", "''") + "',N'" + Model.ProductType.Trim().Replace("'", "''") + "',\n");
+                strSql.Append("N'" + Model.ValuationTech.Trim().Replace("'", "''") + "', " + ((Model.ProductGrpId == 0) ? "null" : "'" + Model.ProductGrpId + "'") + "," + ((Model.PGrpId1 == 0) ? "null" : "'" + Model.PGrpId1 + "'") + "," + ((Model.PGrpId2 == 0) ? "null" : "'" + Model.PGrpId2 + "'") + "," + ((Model.ProductSubGrpId == 0) ? "null" : "'" + Model.ProductSubGrpId + "'") + ",\n");
+                strSql.Append("'" + Model.IsBatchwise + "','" + Model.IsSerialWise + "','" + Model.IsSizewise + "','" + Model.IsExpiryDate + "','" + Model.IsManufacturingDate + "',\n");
+                strSql.Append("" + ((Model.SerialNo == "") ? "null" : "N'" + Model.SerialNo.Trim().Replace("'", "''") + "'") + "," + ((Model.PartsNo == "") ? "null" : "N'" + Model.PartsNo.Trim().Replace("'", "''") + "'") + "," + ((Model.ProductUnitId == 0) ? "null" : "'" + Model.ProductUnitId + "'") + ",'" + ClsGlobal.Val(Model.QtyConv.ToString()) + "'," + ((Model.ProductAltUnitId == 0) ? "null" : "'" + Model.ProductAltUnitId + "'") + ",\n");
+                strSql.Append("'" + Model.AltConv + "','" + ClsGlobal.Val(Model.BuyRate.ToString()) + "','" + ClsGlobal.Val(Model.SalesRate.ToString()) + "','" + ClsGlobal.Val(Model.Margin1.ToString()) + "','" + ClsGlobal.Val(Model.TradeRate.ToString()) + "',\n");
+                strSql.Append("'" + ClsGlobal.Val(Model.Margin2.ToString()) + "','" + ClsGlobal.Val(Model.MRP.ToString()) + "','" + ClsGlobal.Val(Model.MRRate.ToString()) + "','" + ClsGlobal.Val(Model.MaxStock.ToString()) + "','" + ClsGlobal.Val(Model.MinStock.ToString()) + "','" + ClsGlobal.Val(Model.ReorderLevel.ToString()) + "',\n");
+                strSql.Append("'" + ClsGlobal.Val(Model.ReorderQty.ToString()) + "','" + ClsGlobal.Val(Model.PercentDisc.ToString()) + "','" + ClsGlobal.Val(Model.MinQty.ToString()) + "','" + ClsGlobal.Val(Model.MinDisc.ToString()) + "','" + ClsGlobal.Val(Model.MaxQty.ToString()) + "','" + ClsGlobal.Val(Model.MaxDisc.ToString()) + "',\n");
+                strSql.Append("'" + Model.IsTaxable + "','" + ClsGlobal.Val(Model.TaxRate.ToString()) + "'," + ((Model.PurchaseLedgerId == 0) ? "null" : "'" + Model.PurchaseLedgerId + "'") + "," + ((Model.PurchaseReturnLedgerId == 0) ? "null" : "'" + Model.PurchaseReturnLedgerId + "'") + "," + ((Model.SalesLedgerId == 0) ? "null" : "'" + Model.SalesLedgerId + "'") + ",\n");
+                strSql.Append("" + ((Model.SalesReturnLedgerId == 0) ? "null" : "'" + Model.SalesReturnLedgerId + "'") + "," + ((Model.PLOpeningLedgerId == 0) ? "null" : "'" + Model.PLOpeningLedgerId + "'") + "," + ((Model.PLClosingLedgerId == 0) ? "null" : "'" + Model.PLClosingLedgerId + "'") + "," + ((Model.BSClosingLedgerId == 0) ? "null" : "'" + Model.BSClosingLedgerId + "'") + ",\n");
+                strSql.Append("'" + Model.DepreciationType + "'," + ((Model.DepreciationLedgerId == 0) ? "null" : "'" + Model.DepreciationLedgerId + "'") + ",'" + ClsGlobal.Val(Model.DepreciationRate.ToString()) + "',null,\n");
+                strSql.Append("" + ((Model.DepartmentId == 0) ? "null" : "'" + Model.DepartmentId + "'") + "," + ((Model.DepartmentId1 == 0) ? "null" : "'" + Model.DepartmentId1 + "'") + "," + ((Model.DepartmentId2 == 0) ? "null" : "'" + Model.DepartmentId2 + "'") + "," + ((Model.DepartmentId3 == 0) ? "null" : "'" + Model.DepartmentId3 + "'") + ",N'" + Model.EnterBy.Trim().Replace("'", "''") + "',\n");
+                strSql.Append("GetDate(),'" + Model.Status + "'," + ((Model.BarCodeNo2 == "") ? "null" : "N'" + Model.BarCodeNo2.Trim().Replace("'", "''") + "'") + "," + ((Model.BarCodeNo1 == "") ? "null" : "N'" + Model.BarCodeNo1.Trim().Replace("'", "''") + "'") + ",'"+ Model.Gadget + "'\n");
+
+                foreach (SalesProductTerm det in this.ModelSalesProductTerm)
+                {
+                    strSql.Append("INSERT INTO [ERP].[SalesProductTerm] (ProductId,TermId,Rate) \n");
+                    strSql.Append("Select @ProductId,'" + det.TermId + "','" + ClsGlobal.Val(det.Rate.ToString ()) + "' \n");
+                }
+                this.ModelSalesProductTerm.Clear();
+
+                foreach (PurchaseProductTerm det in this.ModelPurchaseProductTerm)
+                {
+                    strSql.Append("INSERT INTO [ERP].[PurchaseProductTerm] (ProductId,TermId,Rate) \n");
+                    strSql.Append("Select @ProductId,'" + det.TermId + "','" + ClsGlobal.Val(det.Rate.ToString()) + "' \n");
+                }
+                this.ModelPurchaseProductTerm.Clear();
+
+                strSql.Append("SET @VNo =@ProductId");
+            }
+
+            else if (Model.Tag == "EDIT")
+            {
+                strSql.Append("UPDATE ERP.PRODUCT SET ProductDesc= N'" + Model.ProductDesc.Trim().Replace("'", "''") + "',ProductShortName=N'" + Model.ProductShortName.Trim().Replace("'", "''") + "',ProductPrintingName=" + ((Model.ProductPrintingName == "") ? "null" : "N'" + Model.ProductPrintingName.Trim().Replace("'", "''") + "'") + ",\n");
+                strSql.Append("GenericName=" + ((Model.GenericName == "") ? "null" : "N'" + Model.GenericName.Trim().Replace("'", "''") + "'") + ",ProductAlias=" + ((Model.ProductAlias == "") ? "null" : "N'" + Model.ProductAlias.Trim().Replace("'", "''") + "'") + ",ProductDescription=" + ((Model.ProductDescription == "") ? "null" : "N'" + Model.ProductDescription.Trim().Replace("'", "''") + "'") + ",ProductCategory=N'" + Model.ProductCategory.Trim().Replace("'", "''") + "',ProductType=N'" + Model.ProductType.Trim().Replace("'", "''") + "',\n");
+                strSql.Append("ValuationTech=N'" + Model.ValuationTech.Trim().Replace("'", "''") + "',ProductGrpId= " + ((Model.ProductGrpId == 0) ? "null" : "'" + Model.ProductGrpId + "'") + ",PGrpId1=" + ((Model.PGrpId1 == 0) ? "null" : "'" + Model.PGrpId1 + "'") + ",PGrpId2=" + ((Model.PGrpId2 == 0) ? "null" : "'" + Model.PGrpId2 + "'") + ",ProductSubGrpId=" + ((Model.ProductSubGrpId == 0) ? "null" : "'" + Model.ProductSubGrpId + "'") + ",\n");
+                strSql.Append("IsBatchwise='" + Model.IsBatchwise + "',IsSerialWise='" + Model.IsSerialWise + "',IsSizewise='" + Model.IsSizewise + "',IsExpiryDate='" + Model.IsExpiryDate + "',IsManufacturingDate='" + Model.IsManufacturingDate + "',\n");
+                strSql.Append("SerialNo=" + ((Model.SerialNo == "") ? "null" : "N'" + Model.SerialNo.Trim().Replace("'", "''") + "'") + ",PartsNo=" + ((Model.PartsNo == "") ? "null" : "N'" + Model.PartsNo.Trim().Replace("'", "''") + "'") + ",ProductUnitId=" + ((Model.ProductUnitId == 0) ? "null" : "'" + Model.ProductUnitId + "'") + ",QtyConv='" + ClsGlobal.Val(Model.QtyConv.ToString()) + "',ProductAltUnitId=" + ((Model.ProductAltUnitId == 0) ? "null" : "'" + Model.ProductAltUnitId + "'") + ",\n");
+                strSql.Append("AltConv='" + Model.AltConv + "',BuyRate='" + ClsGlobal.Val(Model.BuyRate.ToString()) + "',SalesRate='" + ClsGlobal.Val(Model.SalesRate.ToString()) + "',Margin1='" + ClsGlobal.Val(Model.Margin1.ToString()) + "',TradeRate='" + ClsGlobal.Val(Model.TradeRate.ToString()) + "',\n");
+                strSql.Append("Margin2='" + ClsGlobal.Val(Model.Margin2.ToString()) + "',MRP='" + ClsGlobal.Val(Model.MRP.ToString()) + "',MRRate='" + ClsGlobal.Val(Model.MRRate.ToString()) + "',MaxStock='" + ClsGlobal.Val(Model.MaxStock.ToString()) + "',MinStock='" + ClsGlobal.Val(Model.MinStock.ToString()) + "',ReorderLevel='" + ClsGlobal.Val(Model.ReorderLevel.ToString()) + "',\n");
+                strSql.Append("ReorderQty='" + ClsGlobal.Val(Model.ReorderQty.ToString()) + "',PercentDisc='" + ClsGlobal.Val(Model.PercentDisc.ToString()) + "',MinQty='" + ClsGlobal.Val(Model.MinQty.ToString()) + "',MinDisc='" + ClsGlobal.Val(Model.MinDisc.ToString()) + "',MaxQty='" + ClsGlobal.Val(Model.MaxQty.ToString()) + "',MaxDisc='" + ClsGlobal.Val(Model.MaxDisc.ToString()) + "',\n");
+                strSql.Append("IsTaxable='" + Model.IsTaxable + "',TaxRate='" + ClsGlobal.Val(Model.TaxRate.ToString()) + "',PurchaseLedgerId=" + ((Model.PurchaseLedgerId == 0) ? "null" : "'" + Model.PurchaseLedgerId + "'") + ",PurchaseReturnLedgerId=" + ((Model.PurchaseReturnLedgerId == 0) ? "null" : "'" + Model.PurchaseReturnLedgerId + "'") + ",SalesLedgerId=" + ((Model.SalesLedgerId == 0) ? "null" : "'" + Model.SalesLedgerId + "'") + ",\n");
+                strSql.Append("SalesReturnLedgerId=" + ((Model.SalesReturnLedgerId == 0) ? "null" : "'" + Model.SalesReturnLedgerId + "'") + ",PLOpeningLedgerId=" + ((Model.PLOpeningLedgerId == 0) ? "null" : "'" + Model.PLOpeningLedgerId + "'") + ",PLClosingLedgerId=" + ((Model.PLClosingLedgerId == 0) ? "null" : "'" + Model.PLClosingLedgerId + "'") + ",BSClosingLedgerId=" + ((Model.BSClosingLedgerId == 0) ? "null" : "'" + Model.BSClosingLedgerId + "'") + ",\n");
+                strSql.Append("DepreciationType='" + Model.DepreciationType + "',DepreciationLedgerId=" + ((Model.DepreciationLedgerId == 0) ? "null" : "'" + Model.DepreciationLedgerId + "'") + ",DepreciationRate='" + ClsGlobal.Val(Model.DepreciationRate.ToString()) + "',\n");
+                strSql.Append("DepartmentId=" + ((Model.DepartmentId == 0) ? "null" : "'" + Model.DepartmentId + "'") + ",DepartmentId1=" + ((Model.DepartmentId1 == 0) ? "null" : "'" + Model.DepartmentId1 + "'") + ",DepartmentId2=" + ((Model.DepartmentId2 == 0) ? "null" : "'" + Model.DepartmentId2 + "'") + ",DepartmentId3=" + ((Model.DepartmentId3 == 0) ? "null" : "'" + Model.DepartmentId3 + "'") + ",EnterBy=N'" + Model.EnterBy.Trim().Replace("'", "''") + "',\n");
+                strSql.Append("Status='" + Model.Status + "',BarCodeNo2=" + ((Model.BarCodeNo2 == "") ? "null" : "N'" + Model.BarCodeNo2.Trim().Replace("'", "''") + "'") + ",BarCodeNo1=" + ((Model.BarCodeNo1 == "") ? "null" : "N'" + Model.BarCodeNo1.Trim().Replace("'", "''") + "'") + ",Gadget='" + Model.Gadget + "' WHERE ProductId='" + Model.ProductId +"'\n");
+                strSql.Append("SET @VNo ='" + Model.ProductId  + "'");
+
+                strSql.Append("Delete from [ERP].[SalesProductTerm] where ProductId ='" + Model.ProductId + "' \n");
+                strSql.Append("Delete from [ERP].[PurchaseProductTerm] where ProductId ='" + Model.ProductId + "' \n");
+                foreach (SalesProductTerm det in this.ModelSalesProductTerm)
+                {
+                    strSql.Append("INSERT INTO [ERP].[SalesProductTerm] (ProductId,TermId,Rate,LedgerId) \n");
+                    strSql.Append("Select '" + Model.ProductId + "','" + det.TermId + "','" + ClsGlobal.Val(det.Rate.ToString()) + "',(select LedgerId from erp.SalesBillingTerm where TermId='" + det.TermId + "') \n");
+                }
+                this.ModelSalesProductTerm.Clear();
+
+                foreach (PurchaseProductTerm det in this.ModelPurchaseProductTerm)
+                {
+                    strSql.Append("INSERT INTO [ERP].[PurchaseProductTerm] (ProductId,TermId,Rate,LedgerId) \n");
+                    strSql.Append("Select '" + Model.ProductId + "','" + det.TermId + "','" + ClsGlobal.Val(det.Rate.ToString()) + "',(select LedgerId from erp.PurchaseBillingTerm where TermId='" + det.TermId + "') \n");
+                }
+                this.ModelPurchaseProductTerm.Clear();
+
+            }
+            else if (Model.Tag == "DELETE")
+            {
+                strSql.Append("Delete from [ERP].[SalesProductTerm] where ProductId ='" + Model.ProductId + "' \n");
+                strSql.Append("Delete from [ERP].[PurchaseProductTerm] where ProductId ='" + Model.ProductId + "' \n");
+                strSql.Append("DELETE FROM ERP.Product WHERE ProductId = '" + Model.ProductId + "' \n");
+                strSql.Append("SET @VNo ='1'");
+            }
+            
+            strSql.Append("\n COMMIT TRANSACTION \n");
+            strSql.Append("END TRY \n");
+            strSql.Append("BEGIN CATCH \n");
+            strSql.Append("ROLLBACK TRANSACTION \n");
+            strSql.Append("Set @VNo = '' \n");
+            strSql.Append("END CATCH \n");
+
+
+            SqlParameter[] p = new SqlParameter[1];
+            p[0] = new SqlParameter("@VNo", SqlDbType.VarChar, 25)
+            { Direction = ParameterDirection.Output };
+            DAL.ExecuteNonQuery(CommandType.Text, strSql.ToString(), p);
+            return p[0].Value.ToString();
+        }
+        public DataSet GetDataProduct(int ProductId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Select PP.*,PG.ProductGrpDesc,PSG.ProductSubGrpDesc,PG1.ProductGrpDesc as ProductGrpDesc1 ,PG2.ProductGrpDesc as ProductGrpDesc2,PU.ProductUnitShortName AS ProductUnitShortName,APU.ProductUnitShortName AS ProductAltUnitShortName ,GLP.GlDesc as [Purchase],GLPR.GlDesc as [PurchaseReturn],GLS.GlDesc as [Sales],GLSR.GlDesc as [SalesRerurn],GLPLO.GlDesc as [PLOpening],GLPLC.GlDesc as [PLClosing] ,GLBSC.GLDESC as [BSClosing],GD.GodownId,GD.GodownDesc  from ERP.Product PP LEFT JOIN ERP.ProductGroup PG on PP.ProductGrpId =PG.ProductGrpId  LEFT JOIN ERP.ProductSubGroup PSG on pp.ProductSubGrpId =PSG.ProductSubGrpId LEFT JOIN ERP.ProductGroup1 PG1 on PP.ProductGrpId =PG1.ProductGrpId  LEFT JOIN ERP.ProductGroup2 PG2 on PP.ProductGrpId =PG2.ProductGrpId LEFT JOIN ERP.Godown GD on GD.GodownId =PG2.GodownId  LEFT JOIN ERP.ProductUnit PU ON PP.ProductUnitId =PU.ProductUnitId LEFT JOIN ERP.ProductUnit APU ON PP.ProductUnitId =APU.ProductUnitId  LEFT JOIN ERP.GENERALLEDGER GLP ON PP.PurchaseLedgerId=GLP.LEDGERID    LEFT JOIN ERP.GENERALLEDGER GLPR ON PP.PurchaseReturnLedgerId=GLPR.LEDGERID   LEFT JOIN ERP.GENERALLEDGER GLS ON PP.SalesLedgerId=GLS.LEDGERID  LEFT JOIN ERP.GENERALLEDGER GLSR ON PP.SalesReturnLedgerId=GLSR.LEDGERID  LEFT JOIN ERP.GENERALLEDGER GLPLO ON PP.PLOpeningLedgerId=GLPLO.LEDGERID LEFT JOIN ERP.GENERALLEDGER GLPLC ON PP.PLClosingLedgerId=GLPLC.LEDGERID  LEFT JOIN ERP.GENERALLEDGER GLBSC ON PP.BSClosingLedgerId=GLBSC.LEDGERID ");
+            if (ProductId  != 0)
+                strSql.Append(" WHERE ProductId='" + ProductId + "'");
+
+            if (ProductId != 0)
+            {
+                strSql.Append("\nSELECT t1.*,CONVERT(DECIMAL(10,2),ISNULL(t2.Rate,0)) as Rate FROM (select TermId,TermDesc,GlDesc,Basis,STSign as [Sign],case when TermType='I' Then 'Invoice' else 'Retuen'end as TermType from ERP.SalesBillingTerm as SBT inner join erp.GeneralLedger as Gl on SBT.LedgerId=Gl.LedgerId where Billwise='N' and Category='General') t1 LEFT JOIN (select TermId,Rate from ERP.SalesProductTerm WHERE ProductId='" + ProductId + "') t2 ON (t1.TermId = t2.TermId) order by t1.TermId");
+                strSql.Append("\nSELECT t1.*,CONVERT(DECIMAL(10,2),ISNULL(t2.Rate,0)) as Rate FROM (select TermId,TermDesc,GlDesc,Basis,PTSign as [Sign],case when TermType='I' Then 'Invoice' else 'Retuen'end as TermType from ERP.PurchaseBillingTerm as SBT inner join erp.GeneralLedger as Gl on SBT.LedgerId=Gl.LedgerId where Billwise='N' and Category='General') t1 LEFT JOIN (select TermId,Rate from ERP.PurchaseProductTerm WHERE ProductId='" + ProductId + "') t2 ON (t1.TermId = t2.TermId) order by t1.TermId");
+            }
+            return DAL.ExecuteDataset(CommandType.Text,strSql.ToString ());
+        }
+        public int UdfCheck()
+        {
+            DataTable dt= DAL.ExecuteDataset(CommandType.Text, "select UDFCODE from [ERP].[UDFMasterEntry] where  EntryModule='Product Master'").Tables[0];
+            return dt.Rows.Count;
+        }
+        public DataTable ProductListForImportFormat()
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select ProductDesc as [Product Desc],ProductShortName as [Product Code],ProductPrintingName as [Product Printing Name],ProductCategory as [Inventory / Fixed Assets],ProductGrpDesc as [Product Group],ProductGrpShortName as [Product Group Code],ProductSubGrpDesc as [Product Sub Group],ProductSubGrpShortName as [Product Sub Group Code],ProductUnitDesc as [Product Unit],ProductUnitShortName as [Product Unit Code],BuyRate as [Buy Rate], SalesRate as [Sales Rate] \n");
+            strSql.Append("from erp.Product \n");
+            strSql.Append("left outer \n");
+            strSql.Append("join erp.ProductGroup on erp.Product.ProductGrpId = erp.ProductGroup.ProductGrpId \n");
+            strSql.Append("left outer join erp.ProductSubGroup on erp.Product.ProductSubGrpId = erp.ProductSubGroup.ProductSubGrpId \n");
+            strSql.Append("left outer join erp.ProductUnit on erp.Product.ProductUnitId = erp.ProductUnit.ProductUnitId \n");
+            strSql.Append("ORDER BY ProductDesc");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public void GetSingleProduct(string ProductDesc)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select ProductId, ProductDesc, ProductShortName,ProductUnit.ProductUnitDesc as ProductUnit,ProductAltUnit.ProductUnitDesc as ProductAltUnit  from ERP.Product \n");
+            strSql.Append("left outer join ERP.ProductUnit on Product.ProductUnitId = ProductUnit.ProductUnitId \n");
+            strSql.Append("left outer join ERP.ProductUnit AS ProductAltUnit on Product.ProductAltUnitId = ProductAltUnit.ProductUnitId \n");
+            strSql.Append("where ProductDesc = '" + ProductDesc.Replace("'", "''") + "'");
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+            if (dt.Rows.Count > 0)
+            {
+                foreach (DataRow ro in dt.Rows)
+                {
+                    Model.ProductId = Convert.ToInt32(ro["ProductId"].ToString());
+                    Model.ProductDesc = ro["ProductDesc"].ToString();
+                    if (ro["ProductId"] != DBNull.Value) Model.ProductId = Convert.ToInt32(ro["ProductId"].ToString());
+                    if (ro["ProductDesc"] != DBNull.Value) Model.ProductDesc = ro["ProductDesc"].ToString();
+                    if (ro["ProductShortName"] != DBNull.Value) Model.ProductShortName = ro["ProductShortName"].ToString();
+                    if (ro["ProductUnit"] != DBNull.Value) Model.ProductUnit = ro["ProductUnit"].ToString();
+                    if (ro["ProductAltUnit"] != DBNull.Value) Model.ProductAltUnit = ro["ProductAltUnit"].ToString();
+                }
+            }
+        }
+
+        public string ProductAdditionalDesc(string ProductId)
+        {
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select ProductDescription from erp.product where ProductId='" + ProductId + "'").Tables[0];
+            return dt.Rows[0]["ProductDescription"].ToString();
+        }
+
+        public void UpdateProductPrintingName(string ProductId,string ProductPrintingName)
+        {
+            DAL.ExecuteDataset(CommandType.Text, "Update Erp.Product Set ProductPrintingName='"+ ProductPrintingName + "' where ProductId='"+ ProductId + "'");
+        }
+
+        //------------ START PRODUCT MAPPING --------
+        public void SaveProductMapping(string Module)
+        {
+            StringBuilder strSql = new StringBuilder();
+            int i = 0;
+            foreach (ProductMappingList det in this.ModelProductMappingList)
+            {
+                if (Module == "ProductGroup")
+                    strSql.Append("UPDATE ERP.Product  set ProductGrpId='" + det.ProductGrpId + "' where ProductId='" + det.ProductId + "' \n");
+                else if (Module == "ProductSubGroup")
+                    strSql.Append("UPDATE ERP.Product  set ProductGrpId='" + det.ProductGrpId + "',ProductSubGrpId = '" + det.ProductSubGrpId + "' where ProductId='" + det.ProductId + "' \n");
+             
+                else if (Module == "Branch")
+                {
+                    if (i == 0)
+                        strSql.Append("Delete from [ERP].[ProductBranchUnitMapping] where BranchId ='" + det.BranchId + "' \n");
+                    strSql.Append("INSERT INTO [ERP].[ProductBranchUnitMapping] (ProductId, BranchId, CompanyUnitId) \n");
+                    strSql.Append("Select '" + det.ProductId + "','" + det.BranchId + "',null \n");
+                }
+                else if (Module == "CompanyUnit")
+                {
+                    if (i == 0)
+                        strSql.Append("Delete from [ERP].[ProductBranchUnitMapping] where CompanyUnitId ='" + det.CompanyUnitId + "' \n");
+                    strSql.Append("INSERT INTO [ERP].[ProductBranchUnitMapping] (ProductId, BranchId, CompanyUnitId) \n");
+                    strSql.Append("Select '" + det.ProductId + "','" + det.BranchId + "','" + det.CompanyUnitId + "' \n");
+                }
+                i++;
+            }
+            ModelProductMappingList.Clear();
+            DAL.ExecuteNonQuery(System.Data.CommandType.Text, strSql.ToString());
+
+        }
+
+        public void SaveProductCounterMapping(string Counter)
+        {
+            StringBuilder strSql = new StringBuilder();
+            int i = 0;
+            strSql.Append("Delete from [ERP].[ProductCounterMapping] where CounterId ='" + Counter + "' \n");
+            foreach (ProductCounterMappingList det in this.ModelProductCounterMappingList)
+            {
+                strSql.Append("INSERT INTO [ERP].[ProductCounterMapping](CounterId, ProductId) values ('" + Counter + "','" + det.ProductId + "') \n");
+                i++;
+            }
+            ModelProductMappingList.Clear();
+            DAL.ExecuteNonQuery(System.Data.CommandType.Text, strSql.ToString());
+
+        }
+        public DataTable ProductGroupListForProductMapping(string ProductGrpId)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select * from(select 0 AS S, 'True' as Tag, ProductId,ProductShortName, ProductDesc, productGrpDesc from erp.Product as P Left Outer join erp.ProductGroup AS PG on P.ProductGrpId = PG.ProductGrpId where p.ProductId IN(SELECT ProductId FROM ERP.Product WHERE ProductGrpId =" + ProductGrpId + ") union all select 1 AS S, 'False' as Tag, ProductId,productShortName, ProductDesc, productGrpDesc from erp.Product as P Left Outer join erp.ProductGroup AS PG on P.ProductGrpId = PG.ProductGrpId where p.ProductId NOT IN(SELECT ProductId FROM ERP.Product WHERE ProductGrpId =" + ProductGrpId+")) as T order by T.S, ProductDesc").Tables[0];
+        }
+        public DataTable ProductListForCounterMapping(string CounterId)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select 'True' as Tag,P.ProductId,P.productShortName, P.ProductDesc, PG.ProductGrpId ,PG.ProductGrpDesc from ERP.Product as P "+
+                    " left outer join Erp.ProductGroup as PG on PG.ProductGrpId = P.ProductGrpId "+
+                    " where P.ProductId in (select ProductId from ERP.ProductCounterMapping where CounterId = '"+ CounterId + "') " +
+                    " Union all " +
+                    " Select 'False' as Tag,P.ProductId,P.productShortName, P.ProductDesc, PG.ProductGrpId, PG.ProductGrpDesc from ERP.Product as P " +
+                    " left outer join Erp.ProductGroup as PG on PG.ProductGrpId = P.ProductGrpId " +
+                    " where P.ProductId not in (select ProductId from ERP.ProductCounterMapping where CounterId = '"+ CounterId + "')").Tables[0];
+        }
+        public DataTable ProductSubGroupListForProductMapping(string ProductSubGrpId)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "select * from(select 0 AS S, 'True' as Tag, ProductId,ProductShortName, ProductDesc,ProductGrpDesc ,ProductSubGrpDesc from erp.Product as P Left Outer join erp.ProductGroup AS PG on P.ProductGrpId = PG.ProductGrpId left Outer Join erp.ProductSubGroup as PSG on p.ProductSubGrpId=PSG.ProductSubGrpId where p.ProductId IN(SELECT ProductId FROM ERP.Product WHERE ProductSubGrpId =" + ProductSubGrpId + ") union all select 1 AS S, 'False' as Tag, ProductId,productShortName, ProductDesc, ProductGrpDesc,ProductSubGrpDesc from erp.Product as P Left Outer join erp.ProductGroup AS PG on P.ProductGrpId = PG.ProductGrpId left Outer Join erp.ProductSubGroup as PSG on p.ProductSubGrpId=PSG.ProductSubGrpId where p.ProductId NOT IN(SELECT ProductId FROM ERP.Product WHERE ProductSubGrpId =" + ProductSubGrpId+")) as T order by T.S, ProductDesc ").Tables[0];
+        }
+        public DataTable BranchListForProductMapping(string BranchId)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "SELECT * FROM (select 0 AS S,'True'as Tag,P.ProductShortName,P.ProductDesc,B.BranchName,P.ProductId,B.BranchId from erp.Product as P left Join erp.ProductBranchUnitMapping  as PB on P.ProductId=PB.ProductId left join ERP.Branch as B on PB.BranchId=B.BranchId where B.BranchId in (" + BranchId + ") Union All  select 1 AS S,'False'as Tag,P.ProductShortName,P.ProductDesc,B.BranchName,P.ProductId,B.BranchId from erp.Product as P left Join erp.ProductBranchUnitMapping  as PB on P.ProductId=PB.ProductId left join ERP.Branch as B on PB.BranchId=B.BranchId where   B.BranchId IS NULL OR B.BranchId Not in (" + BranchId + ")) AS T ORDER BY T.S, T.ProductDesc").Tables[0];
+        }
+        public DataTable CompanyUnitListForProductMapping(string CompanyUnitId)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "SELECT * FROM (select 0 AS S,'True'as Tag, ProductId,ProductShortName,ProductDesc,'' as CmpUnitName from  ERP.Product  where ProductId  in ( select ProductId from Erp.ProductBranchUnitMapping where CompanyUnitId=" + CompanyUnitId + ") union all select 1 AS S,'False'as Tag, ProductId,ProductShortName,ProductDesc,'' as CmpUnitName from  ERP.Product  where ProductId not in ( select ProductId from Erp.ProductBranchUnitMapping where CompanyUnitId=" + CompanyUnitId + ")) as T ORDER BY T.S, T.ProductDesc ").Tables[0];
+        }
+        public DataTable ProductBranchRate(string ProductId, string BranchId)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select ProductRate from ERP.ProductBranchRate where ProductId='" + ProductId + "' and BranchId='"+ BranchId + "'").Tables[0];
+        }
+        public DataTable GetProductFromShortName(string ProductShortname)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select ProductId from ERP.Product where ProductShortName='" + ProductShortname + "'").Tables[0];
+
+        }
+        
+        //------------ END PRODUCT MAPPING --------   
+    }
+    public class ProductViewModel
+    {
+        public string Tag { get; set; }
+        public int ProductId { get; set; }
+        public string ProductDesc { get; set; }
+        public string ProductShortName { get; set; }
+        public string ProductPrintingName { get; set; }
+        public string GenericName { get; set; }
+        public string ProductAlias { get; set; }
+        public string ProductDescription { get; set; }        
+        public string ProductCategory { get; set; }
+        public string ProductModel { get; set; }
+        public string ProductType { get; set; }
+        public string ValuationTech { get; set; }
+        public int ProductGrpId { get; set; }
+        public int PGrpId1 { get; set; }
+        public int PGrpId2 { get; set; }
+        public int ProductSubGrpId { get; set; }
+        public bool IsBatchwise { get; set; }
+        public bool IsSerialWise { get; set; }
+        public bool IsSizewise { get; set; }
+        public bool IsExpiryDate { get; set; }
+        public bool IsManufacturingDate { get; set; }
+        public string SerialNo { get; set; }
+        public string PartsNo { get; set; }
+        public int ProductUnitId { get; set; }
+        public string ProductUnit { get; set; }
+        public decimal QtyConv { get; set; }
+        public int ProductAltUnitId { get; set; }
+        public string ProductAltUnit { get; set; }
+        public decimal AltConv { get; set; }
+        public decimal BuyRate { get; set; }
+        public decimal SalesRate { get; set; }
+        public decimal Margin1 { get; set; }
+        public decimal TradeRate { get; set; }
+        public decimal Margin2 { get; set; }
+        public decimal MRP { get; set; }
+        public decimal MRRate { get; set; }
+        public decimal MaxStock { get; set; }
+        public decimal MinStock { get; set; }
+        public decimal ReorderLevel { get; set; }
+        public decimal ReorderQty { get; set; }
+        public decimal PercentDisc { get; set; }
+        public decimal MinQty { get; set; }
+        public decimal MinDisc { get; set; }
+        public decimal MaxQty { get; set; }
+        public decimal MaxDisc { get; set; }
+        public bool IsTaxable { get; set; }
+        public decimal TaxRate { get; set; }
+        public int PurchaseLedgerId { get; set; }
+        public int PurchaseReturnLedgerId { get; set; }
+        public int SalesLedgerId { get; set; }
+        public int SalesReturnLedgerId { get; set; }
+        public int PLOpeningLedgerId { get; set; }
+        public int PLClosingLedgerId { get; set; }
+        public int BSClosingLedgerId { get; set; }
+        public string DepreciationType { get; set; }
+        public int DepreciationLedgerId { get; set; }
+        public decimal DepreciationRate { get; set; }
+        //public varbinary  PImage{get;set;}
+        public int DepartmentId { get; set; }
+        public int DepartmentId1 { get; set; }
+        public int DepartmentId2 { get; set; }
+        public int DepartmentId3 { get; set; }
+        public string EnterBy { get; set; }
+        public DateTime? EnterDate { get; set; }
+        public bool Status { get; set; }
+        public string BarCodeNo2 { get; set; }
+        public string BarCodeNo1 { get; set; }
+        public string Gadget { get; set; }
+    }
+
+    public class PurchaseProductTerm
+    {
+        public int ProductId { get; set; }
+        public int TermId { get; set; }
+        public decimal Rate { get; set; }
+        public string Gadget { get; set; }
+    }
+    public class SalesProductTerm
+    {
+        public int ProductId { get; set; }
+        public int TermId { get; set; }
+        public decimal Rate { get; set; }
+        public string Gadget { get; set; }
+    }
+    public class ProductMappingList
+    {
+        public string Tag { get; set; }
+        public int ProductId { get; set; }
+        public int ProductGrpId { get; set; }
+        public int ProductSubGrpId { get; set; }       
+        public int BranchId { get; set; }
+        public int CompanyUnitId { get; set; }
+        public decimal SalesRate { get; set; }      
+    }
+
+    public class ProductCounterMappingList
+    {
+        public int ProductId { get; set; }
+        public int ProductGrpId { get; set; }
+    }
+
+}
+

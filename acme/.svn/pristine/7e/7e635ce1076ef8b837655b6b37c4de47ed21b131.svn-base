@@ -1,0 +1,294 @@
+﻿using DataAccessLayer.Interface.FinanceReport;
+using System;
+using System.Data;
+using System.Text;
+
+namespace DataAccessLayer.FinanceReport
+{
+	public class ClsRptAllLedger : IRptAllLedger
+	{
+		private ActiveDataAccess.ActiveDataAccess DAL;
+
+		public ClsRptAllLedger()
+		{
+			DAL = new ActiveDataAccess.ActiveDataAccess(Database.DBConnection);
+		}
+
+		public DataSet AllLedgerSummary(DateTime fromDate, DateTime toDate, int BranchId, int CompanyUnitId)
+		{
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append($@"
+			With LedgerReport(LedgerId , OpeningDebit, OpeningCredit,PerodicDebit,PerodicCredit)
+			as
+			(
+			Select LedgerId,CASE WHEN SUM(LocalDrAmt -LocalCrAmt) > 0 THEN SUM(LocalDrAmt -LocalCrAmt) ELSE 0 END OpeningDebit,
+			CASE WHEN SUM(LocalDrAmt -LocalCrAmt) > 0 THEN 0 else abs(SUM(LocalDrAmt -LocalCrAmt)) END OpeningCredit, 0 PerodicDebit, 0 PerodicCredit
+			from ERP.FinanceTransaction 
+			where VDate < '{fromDate.ToString("yyyy-MM-dd")}'
+			Group By LedgerId
+			Union All
+			Select LedgerId,0 OpeningDebit, 0 OpeningCredit,Sum(LocalDrAmt) PerodicDebit,Sum(LocalCrAmt) PerodicCredit
+			
+			from ERP.FinanceTransaction 
+			where VDate Between '{fromDate.ToString("yyyy-MM-dd")}' and '{toDate.ToString("yyyy-MM-dd")}'
+			Group By LedgerId
+			)
+			Select GlShortName, GlDesc, Sum(OpeningDebit) OpeningDebit, Sum(OpeningCredit) OpeningCredit,Sum(PerodicDebit) PerodicDebit,SUm(PerodicCredit)  PerodicCredit,Sum(PerodicDebit-PerodicCredit) Balance, 
+			case when Sum(((OpeningDebit- OpeningCredit) + ( PerodicDebit - PerodicCredit))) >= 0 then Sum(((OpeningDebit- OpeningCredit) + ( PerodicDebit - PerodicCredit))) else 0 end ClosingDebit,
+			case when Sum((OpeningCredit -OpeningDebit) + (PerodicCredit-PerodicDebit)) <= 0 then  0 else abs(Sum((OpeningCredit -OpeningDebit) + (PerodicCredit-PerodicDebit))) end ClosingCredit
+			from LedgerReport as LR
+			inner Join ERP.GeneralLedger Gl on Lr.LedgerId=Gl.LedgerId
+			Group By GlDesc,GlShortName
+			Order By GlDesc,GlShortName"
+			);
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString());
+		}
+		public DataSet AllLedgerSummaryLedgerWise(DateTime fromDate, DateTime toDate, int BranchId, int CompanyUnitId)
+		{
+			DataSet ds = AllLedgerSummary(fromDate, toDate, BranchId, CompanyUnitId);
+			DataSet dsResutl = new DataSet();
+			DataTable dtResult = new DataTable();
+			dtResult.Columns.Add("Code", typeof(string));
+			dtResult.Columns.Add("Description", typeof(string));
+			dtResult.Columns.Add("O Dr", typeof(string));
+			dtResult.Columns.Add("O Cr", typeof(string));
+			dtResult.Columns.Add("P Dr", typeof(string));
+			dtResult.Columns.Add("P Cr", typeof(string));
+			dtResult.Columns.Add("Balance", typeof(string));
+			dtResult.Columns.Add("C Dr", typeof(string));
+			dtResult.Columns.Add("C Cr", typeof(string));
+			dtResult.Columns.Add("IsBold", typeof(string));
+			DataRow addNewdr; int i = 1; decimal _TotalODr = 0, _TotalOCr = 0, _TotalPDr = 0, _TotalPCr = 0, _TotalBalance = 0, _TotalCDr = 0, _TotalCCr = 0;
+			foreach (DataRow item in ds.Tables[0].Rows)
+			{
+				_TotalODr = _TotalODr + Convert.ToDecimal(item["OpeningDebit"].ToString());
+				_TotalOCr = _TotalOCr + Convert.ToDecimal(item["OpeningCredit"].ToString());
+				_TotalPDr = _TotalPDr + Convert.ToDecimal(item["PerodicDebit"].ToString());
+				_TotalPCr = _TotalPCr + Convert.ToDecimal(item["PerodicCredit"].ToString());
+				_TotalBalance = _TotalBalance + Convert.ToDecimal(item["Balance"].ToString());
+				_TotalCDr = _TotalCDr + Convert.ToDecimal(item["ClosingDebit"].ToString());
+				_TotalCCr = _TotalCCr + Convert.ToDecimal(item["ClosingCredit"].ToString());
+				addNewdr = dtResult.NewRow();
+				addNewdr["Code"] = item["GlShortName"].ToString();
+				addNewdr["Description"] = item["GlDesc"].ToString();
+				addNewdr["O Dr"] = Convert.ToDecimal(item["OpeningDebit"].ToString()) > 0 ? Convert.ToDecimal(item["OpeningDebit"].ToString()).ToString("0.00") : "";
+				addNewdr["O Cr"] = Convert.ToDecimal(item["OpeningCredit"].ToString()) > 0 ? Convert.ToDecimal(item["OpeningCredit"].ToString()).ToString("0.00") : "";
+				addNewdr["P Dr"] = Convert.ToDecimal(item["PerodicDebit"].ToString()) > 0 ? Convert.ToDecimal(item["PerodicDebit"].ToString()).ToString("0.00") : "";
+				addNewdr["P Cr"] = Convert.ToDecimal(item["PerodicCredit"].ToString()) > 0 ? Convert.ToDecimal(item["PerodicCredit"].ToString()).ToString("0.00") : "";
+				addNewdr["Balance"] = Convert.ToDecimal(item["Balance"].ToString()) != 0 ? Convert.ToDecimal(item["Balance"].ToString()).ToString("0.00") : "";
+				addNewdr["C Dr"] = Convert.ToDecimal(item["ClosingDebit"].ToString()) > 0 ? Convert.ToDecimal(item["ClosingDebit"].ToString()).ToString("0.00") : "";
+				addNewdr["C Cr"] = Convert.ToDecimal(item["ClosingCredit"].ToString()) > 0 ? Convert.ToDecimal(item["ClosingCredit"].ToString()).ToString("0.00") : "";
+				dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+				if (i == ds.Tables[0].Rows.Count)
+				{
+					addNewdr = dtResult.NewRow();
+					addNewdr["Description"] = "Total :";
+					addNewdr["P Dr"] = _TotalPDr.ToString("0.00");
+					addNewdr["P Cr"] = _TotalPCr.ToString("0.00");
+					addNewdr["O Dr"] = _TotalODr.ToString("0.00");
+					addNewdr["O Cr"] = _TotalOCr.ToString("0.00");
+					addNewdr["Balance"] = _TotalBalance.ToString("0.00");
+					addNewdr["C Dr"] = _TotalCDr.ToString("0.00");
+					addNewdr["C Cr"] = _TotalCCr.ToString("0.00");
+					addNewdr["IsBold"] = "Y";
+					dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+				}
+				i++;
+			}
+
+			//DataView view = new DataView(ds.Tables[0]);
+			//DataTable DistinctVoucher = view.ToTable(true, "GlShortName");
+			//DataRow addNewdr; int i = 1; decimal _TotalPDr = 0, _TotalPCr=0, _TotalBalance = 0;
+			//foreach (DataRow item in DistinctVoucher.Rows)
+			//{
+			//    DataTable _newDataTable = ds.Tables[0].Select("GlShortName = '" + item["GlShortName"].ToString() + "'").CopyToDataTable();
+			//    decimal LocalDrAmt = Convert.ToDecimal(_newDataTable.Compute("SUM(LocalDrAmt)", string.Empty));
+			//    decimal LocalCrAmt = Convert.ToDecimal(_newDataTable.Compute("SUM(LocalCrAmt)", string.Empty));
+			//    _TotalPDr = _TotalPDr + LocalDrAmt;
+			//    _TotalPCr = _TotalPCr + LocalCrAmt;
+			//    _TotalBalance = _TotalBalance + (LocalDrAmt - LocalCrAmt);
+			//    addNewdr = dtResult.NewRow();
+			//    addNewdr["Code"] = _newDataTable.Rows[0]["GlShortName"].ToString();
+			//    addNewdr["Description"] = _newDataTable.Rows[0]["GlDesc"].ToString();
+			//    addNewdr["O Dr"] = "0";
+			//    addNewdr["O Cr"] = "0";
+			//    addNewdr["P Dr"] = LocalDrAmt.ToString("0.00");
+			//    addNewdr["P Cr"] = LocalCrAmt.ToString("0.00");
+			//    if ((LocalDrAmt - LocalCrAmt) >= 0)
+			//        addNewdr["Balance"] = (LocalDrAmt - LocalCrAmt).ToString("0.00") + " Dr";
+			//    else
+			//        addNewdr["Balance"] = Math.Abs((LocalDrAmt - LocalCrAmt)).ToString("0.00") + " Cr";
+			//    dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+			//    if (i == DistinctVoucher.Rows.Count)
+			//    {
+			//        addNewdr = dtResult.NewRow();
+			//        addNewdr["Description"] = "Total :";
+			//        addNewdr["P Dr"] = _TotalPDr.ToString("0.00");
+			//        addNewdr["P Cr"] = _TotalPCr.ToString("0.00");
+			//        addNewdr["Balance"] = _TotalBalance.ToString("0.00");
+			//        addNewdr["IsBold"] = "Y";
+			//        dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+			//    }
+			//    i++;
+			//}
+			dsResutl.Tables.Add(dtResult);
+
+			return dsResutl;
+		}
+
+		public DataSet AllLedgerDetails(DateTime fromDate, DateTime toDate, int BranchId, int CompanyUnitId)
+		{
+			StringBuilder strSql = new StringBuilder();
+			strSql.Append($@"
+----OPENING DATA----
+Select '' AS VDate,'' AS VMiti,'' AS VocherNo, GlDesc,GlShortName,0 AS LocalDrAmt,0 AS LocalCrAmt, sum(LocalDrAmt)-sum(LocalCrAmt) as Opening,0 as Odr,'' as Naration from ERP.FinanceTransaction FT,ERP.GeneralLedger GL
+where FT.LedgerId=gl.LedgerId and VDate <'{fromDate.ToString("yyyy-MM-dd")}'
+group by GlShortName,GlDesc
+union all
+----PERIODIC DATA----
+Select CONVERT(VARCHAR(10),VDate,103) as VDate, VMiti,
+Case 
+when Source='CB' then 'CashBank Entry '+ ': ' + VoucherNo 
+when Source='SB' then 'Sales Invoice '+ ': ' + VoucherNo 
+when Source='SR' then 'Sales Return '+ ': ' + VoucherNo 
+when Source='PB' then 'Purchase Invoice '+ ': ' + VoucherNo 
+when Source='PR' then 'Purchase Return '+ ': ' + VoucherNo 
+else 'VoucherNo' + ': ' + VoucherNo end as VocherNo,
+GlDesc,GlShortName,LocalDrAmt,LocalCrAmt,0 AS Opening,1 as Odr,Naration from ERP.FinanceTransaction FT,ERP.GeneralLedger GL
+where FT.LedgerId=gl.LedgerId  and VDate between '{fromDate.ToString("yyyy-MM-dd")}' and '{toDate.ToString("yyyy-MM-dd")}'
+Order By GlDesc,Odr"
+			);
+			return DAL.ExecuteDataset(CommandType.Text, strSql.ToString());
+		}
+
+		public DataSet AllLedgerDetailsLedgerWise(DateTime fromDate, DateTime toDate, int BranchId, int CompanyUnitId, bool isNarrationShow)
+		{
+			DataSet ds = AllLedgerDetails(fromDate, toDate, BranchId, CompanyUnitId);
+			DataSet dsResutl = new DataSet();
+			DataTable dtResult = new DataTable();
+			dtResult.Columns.Add("Date", typeof(string));
+			dtResult.Columns.Add("Particular/Ledger", typeof(string));
+			dtResult.Columns.Add("Dr Amount", typeof(string));
+			dtResult.Columns.Add("Cr Amount", typeof(string));
+			dtResult.Columns.Add("Balance", typeof(string));
+			dtResult.Columns.Add(" ", typeof(string));
+			dtResult.Columns.Add("IsBold", typeof(string));
+
+			DataView view = new DataView(ds.Tables[0]);
+			DataTable DistinctVoucher = view.ToTable(true, "GlDesc");
+			DataRow addNewdr; decimal _TotalPDr = 0, _TotalPCr = 0, _TotalOpeningDr = 0, _TotalOpeningCr = 0, _GrandOpeningDr = 0, _GrandOpeningCr = 0, GrandPeriodicDr = 0, GrandPeriodicCr = 0, _RunningBalance = 0;
+			for (int i = 0; i < DistinctVoucher.Rows.Count; i++)
+			{
+				DataTable _newDataTable1 = ds.Tables[0].Select("GlDesc = '" + DistinctVoucher.Rows[i]["GlDesc"].ToString() + "'").CopyToDataTable();
+				for (int j = 0; j < _newDataTable1.Rows.Count; j++)
+				{
+					_TotalPDr = _TotalPDr + Convert.ToDecimal(_newDataTable1.Rows[j]["LocalDrAmt"].ToString());
+					_TotalPCr = _TotalPCr + Convert.ToDecimal(_newDataTable1.Rows[j]["LocalCrAmt"].ToString());
+					if (j == 0)
+					{
+						if (dtResult.Rows.Count > 0)
+						{
+							addNewdr = dtResult.NewRow(); dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+						}
+						addNewdr = dtResult.NewRow();
+						addNewdr["Particular/Ledger"] = _newDataTable1.Rows[j]["GlDesc"].ToString();
+						addNewdr["IsBold"] = "Y";
+						dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+
+						if (Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString()) != 0)  //opening
+						{
+							addNewdr = dtResult.NewRow();
+							addNewdr["Particular/Ledger"] = "Opening Balance";
+							addNewdr[Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString()) > 0 ? "Dr Amount" : "Cr Amount"] = Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString()).ToString("0.00");
+							addNewdr["Balance"] = Math.Abs(Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString())).ToString("0.00");
+							addNewdr[" "] = Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString()) < 0 ? "CR" : "DR";
+							_RunningBalance = Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString());
+							dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+							if (Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString()) > 0)
+							{
+								_TotalOpeningDr = Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString());
+								_GrandOpeningDr = _GrandOpeningDr + Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString());
+							}
+							else
+							{
+								_TotalOpeningCr = Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString());
+								_GrandOpeningCr = _GrandOpeningCr + Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString());
+							}
+						}
+					}
+
+					if (Convert.ToDecimal(_newDataTable1.Rows[j]["Opening"].ToString()) == 0)
+					{
+						_RunningBalance = _RunningBalance + (Convert.ToDecimal(_newDataTable1.Rows[j]["LocalDrAmt"].ToString()) - Convert.ToDecimal(_newDataTable1.Rows[j]["LocalCrAmt"].ToString()));
+						addNewdr = dtResult.NewRow();
+						addNewdr["Date"] = _newDataTable1.Rows[j]["VDate"].ToString();
+						addNewdr["Particular/Ledger"] = _newDataTable1.Rows[j]["VocherNo"].ToString();
+						addNewdr["Dr Amount"] = Convert.ToDecimal(_newDataTable1.Rows[j]["LocalDrAmt"].ToString()).ToString("0.00");
+						addNewdr["Cr Amount"] = Convert.ToDecimal(_newDataTable1.Rows[j]["LocalCrAmt"].ToString()).ToString("0.00");
+						addNewdr["Balance"] = Math.Abs(_RunningBalance).ToString("0.00");
+						addNewdr[" "] = _RunningBalance < 0 ? "CR" : "DR";
+						dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+
+						if (isNarrationShow == true && !string.IsNullOrEmpty(_newDataTable1.Rows[j]["Naration"].ToString()))
+						{
+							addNewdr = dtResult.NewRow();
+							addNewdr["Date"] = "Narr :";
+							addNewdr["Particular/Ledger"] = _newDataTable1.Rows[j]["Naration"].ToString();
+							dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+						}
+					}
+
+					if (j == _newDataTable1.Rows.Count - 1)
+					{
+						_RunningBalance = 0;
+						addNewdr = dtResult.NewRow();
+						addNewdr["Particular/Ledger"] = "Periodic Total :";
+						addNewdr["Dr Amount"] = _TotalPDr.ToString("0.00");
+						addNewdr["Cr Amount"] = _TotalPCr.ToString("0.00");
+						addNewdr["IsBold"] = "Y";
+						dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+
+						addNewdr = dtResult.NewRow();
+						addNewdr["Particular/Ledger"] = "A/C Total :";
+						addNewdr["Dr Amount"] = (_TotalPDr + _TotalOpeningDr).ToString("0.00");
+						addNewdr["Cr Amount"] = (_TotalPCr + _TotalOpeningCr).ToString("0.00");
+						addNewdr["IsBold"] = "Y";
+						dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+
+						GrandPeriodicDr = GrandPeriodicDr + _TotalPDr;
+						GrandPeriodicCr = GrandPeriodicCr + _TotalPCr;
+
+						_TotalPDr = 0; _TotalPCr = 0; _TotalOpeningDr = 0; _TotalOpeningCr = 0;
+					}
+
+					if ((DistinctVoucher.Rows.Count - 1) == i)
+					{
+						addNewdr = dtResult.NewRow();
+						addNewdr["Particular/Ledger"] = "Grand Opening Total :";
+						addNewdr["Dr Amount"] = _GrandOpeningDr.ToString("0.00");
+						addNewdr["Cr Amount"] = _GrandOpeningCr.ToString("0.00");
+						addNewdr["IsBold"] = "Y";
+						dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+
+						addNewdr = dtResult.NewRow();
+						addNewdr["Particular/Ledger"] = "Grand Periodic Total :";
+						addNewdr["Dr Amount"] = GrandPeriodicDr.ToString("0.00");
+						addNewdr["Cr Amount"] = GrandPeriodicCr.ToString("0.00");
+						addNewdr["IsBold"] = "Y";
+						dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+
+						addNewdr = dtResult.NewRow();
+						addNewdr["Particular/Ledger"] = "Grand Total :";
+						addNewdr["Dr Amount"] = (_GrandOpeningDr + GrandPeriodicDr).ToString("0.00");
+						addNewdr["Cr Amount"] = (_GrandOpeningCr + GrandPeriodicCr).ToString("0.00");
+						addNewdr["IsBold"] = "Y";
+						dtResult.Rows.InsertAt(addNewdr, dtResult.Rows.Count + 1);
+					}
+				}
+			}
+			dsResutl.Tables.Add(dtResult);
+
+			return dsResutl;
+		}
+	}
+}

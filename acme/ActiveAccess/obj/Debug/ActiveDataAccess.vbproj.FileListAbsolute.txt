@@ -1,0 +1,8 @@
+C:\acme\ActiveDataAccess\bin\Debug\ActiveDataAccess.dll
+C:\acme\ActiveDataAccess\bin\Debug\ActiveDataAccess.pdb
+C:\acme\ActiveDataAccess\bin\Debug\ActiveDataAccess.xml
+C:\acme\ActiveAccess\obj\Debug\ActiveDataAccess.vbprojAssemblyReference.cache
+C:\acme\ActiveAccess\obj\Debug\ActiveDataAccess.vbproj.CoreCompileInputs.cache
+C:\acme\ActiveAccess\obj\Debug\ActiveDataAccess.dll
+C:\acme\ActiveAccess\obj\Debug\ActiveDataAccess.xml
+C:\acme\ActiveAccess\obj\Debug\ActiveDataAccess.pdb

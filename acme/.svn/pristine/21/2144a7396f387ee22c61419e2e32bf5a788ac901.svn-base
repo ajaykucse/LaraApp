@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link rel="shortcut icon" type="image/x-icon" href="~/Images/acmelogo.ico" />
+    <meta name="description" content="The acme Online ERP Solution for your businesses. You can get Dashboard,Finance,Inventory,Accounting,Purchase and Sales management and many more modules and features.">
+    <meta name="keywords" content="Accounting software in Nepal,Best Accounting software,Accounting software,Online Accounting software,ERP,ERP in Nepal, Best ERP in nepal,Dashboard,Finance,Inventory,Accounting,Purchase and Sales management">
+    <title>ACME|Accounting Software</title>
+    <script type='text/javascript' src='~/Scripts/jquery-3.3.1.min.js'></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/bootstrap.min.js"></script>
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    <link href="~/Content/Menu.css" rel="stylesheet" />
+    <style type="text/css">
+        footer label {
+            margin-left: 45px;
+            color: #007380;
+        }
+
+        #headerTop {
+            top: 0;
+            background-color: #f0f0f1;
+            padding-bottom: 5px;
+            width: 100%;
+            z-index: 9;
+            font-size: 0.9em;
+            padding-left: 28px;
+            color: #767C8F;
+            padding-top: 5px;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            // grab the initial top offset of the navigation
+            var sticky_navigation_offset_top = $('#header-navbar').offset().top;
+
+            // our function that decides weather the navigation bar should have "fixed" css position or not.
+            var sticky_navigation = function () {
+                var scroll_top = $(window).scrollTop(); // our current vertical position from the top
+
+                // if we've scrolled more than the navigation, change its position to fixed to stick to top, otherwise change it back to relative
+                if (scroll_top > sticky_navigation_offset_top) {
+                    $('#header-navbar').css({ 'position': 'fixed', 'width': '100%', 'z-index': 9999 });
+                } else {
+                    $('#header-navbar').css({ 'position': 'relative' });
+                }
+            };
+
+            // run our function on load
+            sticky_navigation();
+
+            // and run it again every time you scroll
+            $(window).scroll(function () {
+                sticky_navigation();
+            });
+
+            // NOT required:
+            // for this demo disable all links that point to "#"
+            $('a[href="#"]').click(function (event) {
+                event.preventDefault();
+            });
+        });
+        
+        $(document).on('keypress', 'input,select,button', function (e) {
+            if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 9 || e.keyCode === 8) {
+                return;
+            }
+            else if (e.which == 13) {
+                e.preventDefault();
+                var $canfocus = $(':focusable');
+                if ($(this).prop('required') && $(this).val() === '') {
+                    $('#lblmessage').show();
+                    $("#lblmessage").text("Please fill out this field.");
+                    $("#lblmessage").removeClass();
+                    $('#lblmessage').addClass('alert alert-danger');
+                    $(this).focus();
+                } else {
+                    if ($(this).attr('id') === 'btnMasterSave' || $(this).attr('id') === 'btnMasterSaveClose') {
+                        $(this).click();
+                    }
+                    $('#lblmessage').hide();
+                    var index = $canfocus.index(document.activeElement) + 1;
+                    if (index >= $canfocus.length) index = 0;
+                    $canfocus.eq(index).focus();
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <div id="headerTop" class="hidden-print">
+        <img src="~/Images/logo.png" style="float:left; " />
+        <label style="font-size:18px;font-family: 'audiowideregular'; color:#ce2d26; float:left; padding-left:5px;">
+            acme
+        </label>
+        <label style="margin-left:50px;padding-top:5px;">
+            Initial :
+            <span id="lblCompanyCode">@ClsGlobalSession._CompIniTial</span>
+        </label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <label style="">Company : <span>@ClsGlobalSession._CompName</span> </label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <label style="">Start Date : <span id="spnCompanyStartDate"><span>@ClsGlobalSession._CompStartDate</span></span></label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <label style="">End Date : <span id="spnCompanyEndDate"><span>@ClsGlobalSession._CompEndDate</span></span></label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <label style="">User : <span>@ClsGlobalSession._LoginUserCode</span></label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <label style="">Branch : <span>@ViewBag.LoginBranchName</span></label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <label style="">Unit : <span>@ViewBag.LoginUnitName</span></label>
+    </div>
+    <div class="navbar navbar-inverse navbar-fixed-top" id="header-navbar">
+        <div class="container">
+            <nav class="navbar navbar-inverse navbar-static-top marginBottom-0" role="navigation">
+                <div class="navbar-header">
+                    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".js-navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                @Html.Raw(HttpUtility.HtmlDecode(Session["MenuList"].ToString()))<!-- /.nav-collapse -->
+            </nav>
+        </div>
+    </div>
+    <div class="container body-content">
+        <div id="mylayoutpage">
+            @RenderBody()
+        </div>
+        <footer class="hidden-print">
+            <input type="hidden" value="@ViewBag.CompanyAdStartDate" class="form-control" id="lblCmpStartDate" name="lblCmpStartDate" readonly tabindex="-1" />
+            <input type="hidden" value="@ViewBag.CompanyAdEndDate" class="form-control" id="lblCmpEndDate" name="lblCmpEndDate" readonly tabindex="-1" />
+        </footer>
+        <hr style="margin-top:10px; margin-bottom:10px;" class="hidden-print" />
+        <footer class="hidden-print">
+            <p style="margin-left:10px; font-size:12px;">&copy; 2010 - @DateTime.Now.Year - acme soft Pvt. Ltd.</p>
+            <input type="hidden" name="ApiUrl" id="ApiUrl" value="@ViewBag.ApiUrl" />
+            <input type="hidden" name="DbName" id="DbName" value="@ViewBag.DbName" />
+            <input type="hidden" name="CmpUnitCode" id="CmpUnitCode" value="@ViewBag.CmpUnitCode" />
+            <input type="hidden" name="IsProjectEdition" id="IsProjectEdition" value="@ViewBag.IsProjectEdition" />
+        </footer>
+    </div>
+
+    <!-- Modal -->
+    <div id="myFormModal" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width:800px;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h5 class="modal-title">Account Group <span class="badge" id="SpnTag"></span></h5>
+                </div>
+                <div class="modal-body" id="mymodels" style="min-height:200px">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="btnMasterSave">Save</button>
+                    <button type="button" class="btn btn-default" id="btnMasterSaveClose">Save & Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" type="text/css" href="~/Content/datatables.min.css" />
+    <script type="text/javascript" src="~/Scripts/datatables.min.js"></script>
+
+    @*<script type="text/javascript" src="ahttps://cdn.datatables.net/tabletools/2.2.2/swf/copy_csv_xls_pdf.swf"></script>*@
+    <script type="text/javascript" src="~/Scripts/jszip.min.2.5.0.js"></script>
+
+    <script type="text/javascript" src="~/Scripts/pdfmake.min.0.1.32.js"></script>
+    <script type="text/javascript" src="~/Scripts/vfs_fonts.0.1.32.js"></script>
+
+    <script type="text/javascript" src="~/Scripts/buttons.html5.min.js"></script>
+    @*<link rel="stylesheet" type="text/css" href="ahttps://cdn.datatables.net/buttons/1.5.1/css/buttons.dataTables.min.css" />*@
+    @*<script type="text/javascript" src="ahttps://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>*@
+    <script type="text/javascript" src="~/Scripts/buttons.print.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/buttons.colVis.min.js"></script>
+
+    <script type="text/javascript" src="~/Scripts/bootstrap-confirmation.2.4.1.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/allinone.js"></script>
+    <link href="~/Content/Site.css" rel="stylesheet" />
+</body>
+</html>

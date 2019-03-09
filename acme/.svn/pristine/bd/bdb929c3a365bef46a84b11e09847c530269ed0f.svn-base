@@ -1,0 +1,221 @@
+﻿using DataAccessLayer.Interface.Common;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Text;
+
+namespace DataAccessLayer.Common
+{
+
+    public class ClsUserMaster: IUserMaster
+    {
+        private ActiveDataAccess.ActiveDataAccess DAL;
+        public UserMasterViewModel Model { get; set; }
+
+        public List<CompanyRightList> CompanyList { get; set; }
+        public ClsUserMaster()
+        {
+            DAL = new ActiveDataAccess.ActiveDataAccess(Database.DBConnection);
+            Model = new UserMasterViewModel();
+            CompanyList = new List<CompanyRightList>();
+        }
+        public string SaveUserMaster()
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("BEGIN TRANSACTION \n");
+            strSql.Append("BEGIN TRY \n");
+            if (Model.Tag == "NEW")
+            {
+                strSql.Append("Insert into MyMaster.dbo.UserMaster (UserCode, UserName, UserPassword, StartDate, EndDate, CreateBy, CreateDate, MobileNo, EmailId,LedgerId,UserType) \n");
+                strSql.Append("select N'" + Model.UserCode.Trim().Replace("'", "''") + "',N'" + Model.UserName.Trim().Replace("'", "''") + "','" + Model.UserPassword + "','" + Model.StartDate.ToString("MM/dd/yyyy") + "','" + Model.EndDate.ToString("MM/dd/yyyy") + "','" + Model.CreateBy + "',GETDATE(),'" + Model.MobileNo.Trim() + "','" + Model.EmailId.Trim() + "' ,'" + Model.LedgerId + "','"+ Model.UserType + "'\n");
+
+                strSql.Append("Insert into MyMaster.[dbo].[CompanyRights] (UserCode, CompanyInitial) \n");
+                strSql.Append("select N'" + Model.UserCode.Trim().Replace("'", "''") + "',N'" + Model.CompanyIniTial.Trim().Replace("'", "''") + "' \n");
+
+            }
+            else if (Model.Tag == "EDIT")
+            {
+                strSql.Append("UPDATE MyMaster.dbo.UserMaster  SET UserCode=N'" + Model.UserCode.Trim().Replace("'", "''") + "',UserName = N'" + Model.UserName.Trim().Replace("'", "''") + "',UserPassword = '" + Model.UserPassword + "',StartDate = '" + Model.StartDate.ToString("MM/dd/yyyy") + "',EndDate = '" + Model.EndDate.ToString("MM/dd/yyyy") + "',[CreateBy]='" + Model.CreateBy + "',CreateDate= GETDATE(),[MobileNo]='" + Model.MobileNo + "', [EmailId]='" + Model.EmailId + "',LedgerId='" + Model.LedgerId + "',UserType='"+Model.UserType+"'  WHERE UserCode = '" + Model.UserCode + "' \n");
+            }
+            else if (Model.Tag == "DELETE")
+            {
+                strSql.Append("DELETE FROM MyMaster.dbo.CompanyRights WHERE UserCode = '" + Model.UserCode + "' \n");
+                strSql.Append("DELETE FROM MyMaster.dbo.UserMaster WHERE UserCode = '" + Model.UserCode + "' \n");
+            }
+            else if (Model.Tag == "ChangePassword")
+            {
+                strSql.Append("UPDATE MyMaster.dbo.UserMaster  SET UserPassword = '" + Model.UserPassword + "'  WHERE UserCode = '" + Model.UserCode + "' \n");
+            }
+
+            strSql.Append("\n COMMIT TRANSACTION \n");
+            strSql.Append("END TRY \n");
+            strSql.Append("BEGIN CATCH \n");
+            strSql.Append("ROLLBACK TRANSACTION \n");
+            strSql.Append("END CATCH \n");
+            return DAL.ExecuteNonQuery(CommandType.Text, strSql.ToString()).ToString();
+        }
+
+        public DataTable CheckUser(string username, string pass)
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select * from MyMaster.dbo.UserMaster where (UserCode='" + username + "' OR EmailId='" + username + "' OR MobileNo='" + username + "') AND (UserPassword = '' OR  UserPassword is null)").Tables[0];
+        }
+       
+        public DataTable GetUserList()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select 0 as sno,'All' as UserCode , 'All' as UserName union all select 1 as sno,UserCode, UserName from MyMaster.dbo.Usermaster order by sno,UserName").Tables[0];
+        }
+        public DataTable GetDataUser(string UserId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select MyMaster.dbo.UserMaster .*,GlDesc from MyMaster.dbo.UserMaster left join ERP.GeneralLedger on MyMaster.dbo.UserMaster.LedgerId=ERP.GeneralLedger.LedgerId ");
+            if (UserId !="")
+                strSql.Append("   where UserCode='" + UserId + "'");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+
+        }       
+        public DataTable UserListForRights()
+        {
+            return DAL.ExecuteDataset(CommandType.Text, "Select UserCode from MyMaster.dbo.UserMaster where UserName !='ADMIN' order by UserCode").Tables[0];
+        }
+        public int CheckOldPassword(string password)
+        {
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select  UserPassword from MyMaster.dbo.UserMaster where   UserCode='" + ClsGlobal.LoginUserCode + "' and UserPassword='"+ password + "' ").Tables[0];
+            if (dt.Rows.Count > 0)
+            {
+                return 1;
+            }
+            return 0;
+        }
+        public int CheckDuplicateUserCode(string UserCode)
+        {
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select  UserCode from MyMaster.dbo.UserMaster where   UserCode='" + UserCode + "' ").Tables[0];
+            if (dt.Rows.Count > 0)
+            {
+                return 1;
+            }
+            return 0;
+        }
+        public int CheckDuplicateUserName(string UserName)
+        {
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select  UserName from MyMaster.dbo.UserMaster where   UserName='" + UserName + "' ").Tables[0];
+            if (dt.Rows.Count > 0)
+            {
+                return 1;
+            }
+            return 0;
+        }
+        public int CheckDuplicateMobileNo(string mobileno)
+        {
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select  MobileNo from MyMaster.dbo.UserMaster where   MobileNo='" + mobileno + "' ").Tables[0];
+            if (dt.Rows.Count > 0)
+            {
+                return 1;
+            }
+            return 0;
+        }
+        public int CheckDuplicateEmail(string EmailId)
+        {
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select  EmailID from MyMaster.dbo.UserMaster where EmailID='" + EmailId + "' ").Tables[0];
+            if (dt.Rows.Count > 0)
+            {
+                return 1;
+            }
+            return 0;
+        }
+        public DataTable CompanyListForUserRights(string UserCode)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select 'True' AS Tag, IniTial, CompanyName from MyMaster.dbo.CompanyMaster where IniTial in (select CompanyInitial from MyMaster.dbo.CompanyRights where UserCode = '" + UserCode + "') \n");
+            strSql.Append("union all \n");
+            strSql.Append("select 'False' AS Tag, IniTial, CompanyName from MyMaster.dbo.CompanyMaster where IniTial not in (select CompanyInitial from MyMaster.dbo.CompanyRights where UserCode = '" + UserCode + "') order by Tag desc, CompanyName asc \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public void SaveCompanyRights(string UserCode)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("DELETE FROM MyMaster.dbo.CompanyRights where UserCode='" + UserCode + "' \n");
+            foreach (CompanyRightList det in CompanyList)
+            {
+                strSql.Append("INSERT INTO MyMaster.dbo.CompanyRights (UserCode,CompanyInitial) \n");
+                strSql.Append("Select '" + det.UserCode + "','" + det.IniTial + "' \n");
+            }
+            CompanyList.Clear();
+            DAL.ExecuteNonQuery(CommandType.Text, strSql.ToString());
+        }
+        public DataTable BranchListForUserRights(string UserCode, string Initial)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select 'True' AS Tag, BranchId, BranchName from ERP.Branch where BranchId in (select BranchId from MyMaster.dbo.BranchRights where UserCode = '" + UserCode + "' AND CompanyInitial = '" + Initial + "') \n");
+            strSql.Append("union all \n");
+            strSql.Append("select 'False' AS Tag, BranchId, BranchName from ERP.Branch where BranchId not in (select BranchId from MyMaster.dbo.BranchRights where UserCode = '" + UserCode + "' AND CompanyInitial = '" + Initial + "') order by Tag desc, BranchName asc");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public void SaveBranchRights(string UserCode, string Initial)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("DELETE FROM MyMaster.dbo.BranchRights where UserCode='" + UserCode + "' AND CompanyInitial = '" + Initial + "' \n");
+            foreach (CompanyRightList det in CompanyList)
+            {
+                strSql.Append("INSERT INTO MyMaster.dbo.BranchRights (UserCode,BranchId,CompanyInitial) \n");
+                strSql.Append("Select '" + det.UserCode + "','" + det.BranchId + "','" + Initial + "' \n");
+            }
+            CompanyList.Clear();
+            DAL.ExecuteNonQuery(CommandType.Text, strSql.ToString());
+        }
+        public DataTable CompanyUnitListForUserRights(string UserCode, string Initial)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select 'True' AS Tag, CompanyUnitId, CmpUnitName,ERP.CompanyUnit.BranchId,BranchName from ERP.CompanyUnit,ERP.Branch \n");
+            strSql.Append("where ERP.CompanyUnit.BranchId = ERP.Branch.BranchId and  CompanyUnitId in (select CompanyInitial from MyMaster.dbo.CompanyUnitRights where UserCode = '" + UserCode + "' AND CompanyInitial='" + Initial + "')  \n");
+            strSql.Append("union all \n");
+            strSql.Append("select 'False' AS Tag, CompanyUnitId, CmpUnitName,ERP.CompanyUnit.BranchId,BranchName from ERP.CompanyUnit,ERP.Branch \n");
+            strSql.Append("where ERP.CompanyUnit.BranchId = ERP.Branch.BranchId and CompanyUnitId not in (select CompanyInitial from MyMaster.dbo.CompanyUnitRights where UserCode = '" + UserCode + "' AND CompanyInitial='" + Initial + "') order by Tag desc, CmpUnitName asc");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public void SaveCompanyUnitRights(string UserCode, string Initial)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("DELETE FROM MyMaster.dbo.CompanyUnitRights where UserCode='" + UserCode + "' AND CompanyInitial = '" + Initial + "' \n");
+            foreach (CompanyRightList det in CompanyList)
+            {
+                strSql.Append("INSERT INTO MyMaster.dbo.CompanyUnitRights (UserCode,BranchId,CompanyUnitId,CompanyInitial) \n");
+                strSql.Append("Select '" + det.UserCode + "','" + det.BranchId + "','" + det.CompanyUnitId + "','" + Initial + "' \n");
+            }
+            CompanyList.Clear();
+            DAL.ExecuteNonQuery(CommandType.Text, strSql.ToString());
+        }
+
+        public DataTable ComboBindUserName()
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select * from MyMaster.dbo.UserMaster Order By UserCode");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+    }
+
+    public class CompanyRightList
+    {
+        public string UserCode { get; set; }
+        public string IniTial { get; set; }
+        public string BranchId { get; set; }
+        public string CompanyUnitId { get; set; }
+    }
+
+    public class UserMasterViewModel
+    {
+        public string Tag { get; set; }
+        public string CompanyIniTial { get; set; } 
+        public string UserCode { get; set; }
+        public string UserName { get; set; }
+        public string UserPassword { get; set; }
+        public string MobileNo { get; set; }
+        public string EmailId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string CreateBy { get; set; }
+        public Nullable<DateTime> CreateDate { get; set; }
+        public int LedgerId { get; set; }
+        public string UserType { get; set; }
+    }
+}

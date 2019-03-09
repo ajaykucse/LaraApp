@@ -1,0 +1,765 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using acmedesktop.Common;
+using DataAccessLayer.Common;
+using DataAccessLayer.MasterSetup;
+using DataAccessLayer.SystemSetting;
+
+namespace acmedesktop.SystemSetting
+{
+    public partial class FrmDocumentNumbering : Form
+    {
+        ClsDocumentNumbering _objDocNumber = new ClsDocumentNumbering();
+        ClsDateMiti _objDateMiti = new ClsDateMiti();
+        ClsUserMaster _objUser = new ClsUserMaster();
+        ClsCompanyUnit _objComUnit = new ClsCompanyUnit();
+        ClsBranch _objBranch = new ClsBranch();
+        private ClsPickList _objPickList = new ClsPickList();
+        public int DocId;
+		DataRow[] DocDataRows;
+		private string _Tag = "", _SearchKey = "", result ="";
+		DataTable dtBranchForDocMapping = new DataTable(); 
+
+		public FrmDocumentNumbering()
+        {
+            InitializeComponent();
+        }
+        private void FrmDocumentNumbering_Load(object sender, EventArgs e)
+        {
+            ControlEnableDisable(true, false);
+            ClearFld();
+			BtnNew.Focus();
+		}
+        private void FrmDocumentNumbering_KeyDown(object sender, KeyEventArgs e)
+        {
+			if (e.KeyCode == Keys.Enter)
+                SendKeys.Send("{Tab}");
+            else if (e.KeyCode == Keys.Escape)
+            {
+                if (BtnCancel.Enabled == true)
+                {
+                    _Tag = "";
+                    BtnCancel.PerformClick();
+                }
+                else
+                    BtnExit.PerformClick();
+                DialogResult = DialogResult.Cancel;
+                return;
+            }
+        }
+        private void BtnNew_Click(object sender, EventArgs e)
+        {
+            _Tag = "NEW";
+            ControlEnableDisable(false, true);
+            this.Text = "Document Numbering [NEW]";
+			
+			if (ClsGlobal.DateType == "M")
+			{
+
+				TxtStartDate.Text = _objDateMiti.GetMiti(Convert.ToDateTime(ClsGlobal.CompanyStartDate.ToString()));
+				TxtEndDate.Text = _objDateMiti.GetMiti(Convert.ToDateTime(ClsGlobal.CompanyEndDate.ToString()));
+			}
+			else
+			{
+				TxtStartDate.Text = ClsGlobal.CompanyStartDate.ToString();
+				TxtEndDate.Text = ClsGlobal.CompanyEndDate.ToString();
+			}
+        }
+        private void BtnEdit_Click(object sender, EventArgs e)
+        {
+            _Tag = "EDIT";
+            ControlEnableDisable(false, true);
+            Text = "Document Numbering [EDIT]";
+            CmbNumberingType.Enabled = false;           
+        }
+        private void BtnDelete_Click(object sender, EventArgs e)
+        {
+            _Tag = "DELETE";
+            ControlEnableDisable(false, false);
+            Text = "Document Numbering [DELETE]";
+            TxtModule.Enabled = true;
+            BtnModuleSearch.Enabled = true;
+            TxtDescription.Enabled = true;
+            BtnDescSearch.Enabled = true;
+            TxtModule.Focus();
+            BtnSave.Enabled = true;
+            BtnCancel.Enabled = true;
+        }
+        private void BtnExit_Click(object sender, EventArgs e)
+        {
+            if (ClsGlobal.ConfirmFormClose == 1)
+            {
+                var dialogResult = MessageBox.Show("Are you sure want to Close Form..??", "Close Form", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    this.Close();
+                }
+            }
+            else
+            {
+                Close();
+            }
+        }
+        private void BtnSave_Click(object sender, EventArgs e)
+        {
+			if (string.IsNullOrEmpty(TxtDescription.Text.Trim()))
+			{
+				MessageBox.Show("Description cannot be left blank.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				TxtDescription.Focus();
+				return;
+			}
+
+			if (string.IsNullOrEmpty(TxtBodyLength.Text.Trim()))
+			{
+				MessageBox.Show("Bodylength  Cannot Left Blank...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				TxtBodyLength.Focus();
+				return;
+			}
+
+			int.TryParse(TxtBodyLength.Text, out int _TxtBodyLengt);
+			if (_TxtBodyLengt == 0)
+			{
+				MessageBox.Show("Please enter bodylength greater then 0.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				TxtBodyLength.Focus();
+				return;
+			}
+
+			_objDocNumber.Model.Tag = _Tag;
+            _objDocNumber.Model.DocId = this.DocId;
+            if ((_Tag == "EDIT" || _Tag == "DELETE") && DocId == 0)
+            {
+                ClearFld();
+                return;
+            }
+
+            _objDocNumber.Model.DocId = this.DocId;
+            _objDocNumber.Model.DocModule = TxtModule.Text;
+            _objDocNumber.Model.DocDesc = TxtDescription.Text;
+            if (ClsGlobal.DateType == "D")
+            {
+                _objDocNumber.Model.DocStartDate = Convert.ToDateTime(TxtStartDate.Text);
+                _objDocNumber.Model.DocEndDate = Convert.ToDateTime(TxtEndDate.Text);
+                _objDocNumber.Model.DocStartMiti = _objDateMiti.GetMiti(Convert.ToDateTime(TxtStartDate.Text));
+                _objDocNumber.Model.DocEndMiti = _objDateMiti.GetMiti(Convert.ToDateTime(TxtEndDate.Text));
+            }
+            else
+            {
+                _objDocNumber.Model.DocStartDate = Convert.ToDateTime(_objDateMiti.GetDate(TxtStartDate.Text.ToString()));
+                _objDocNumber.Model.DocEndDate = Convert.ToDateTime(_objDateMiti.GetDate(TxtEndDate.Text.ToString()));
+                _objDocNumber.Model.DocStartMiti = TxtStartDate.Text;
+                _objDocNumber.Model.DocEndMiti = TxtEndDate.Text;
+            }
+           
+            _objDocNumber.Model.DocType = CmbNumberingType.Text.Trim();
+            _objDocNumber.Model.DocPrefix = TxtPrefix.Text;
+            _objDocNumber.Model.DocSufix = TxtSuffix.Text;
+            _objDocNumber.Model.DocBodyLength = Convert.ToInt32(TxtBodyLength.Text);
+            _objDocNumber.Model.DocTotalLength = Convert.ToInt32(TxtTotalLength.Text);
+            _objDocNumber.Model.DocIsNumericFill = ((ChkNumericFill.Checked == true) ? true : false);
+            _objDocNumber.Model.DocFillCharacter = TxtFillCharacter.Text;
+           // _objDocNumber.Model.BranchId = ((CmbBranch.Tag.ToString() == "0") ? 0 : Convert.ToInt32(CmbBranch.Tag.ToString()));
+           // _objDocNumber.Model.CompanyUnitId = ((CmbCompanyUnit.Tag.ToString() == "0") ? 0 : Convert.ToInt32(CmbCompanyUnit.Tag.ToString()));
+            _objDocNumber.Model.DocStartNo = Convert.ToInt32(TxtStartNo.Text);
+            _objDocNumber.Model.DocCurrentNo = Convert.ToInt32(TxtCurrentNo.Text);
+            _objDocNumber.Model.DocEndNo = Convert.ToInt32(TxtEndNo.Text);
+          //  _objDocNumber.Model.PrintDesignId = ((CmbPrintDesign.Tag.ToString() == "") ? 0 : Convert.ToInt32(CmbPrintDesign.Tag.ToString()));
+            _objDocNumber.Model.EnterBy = ClsGlobal.LoginUserCode;
+            _objDocNumber.Model.Gadget = "Desktop";
+            if (RbtnAuto.Checked == true)
+                _objDocNumber.Model.NumericalStyle = "Auto";
+            else if (RbtnNumeric.Checked == true)
+                _objDocNumber.Model.NumericalStyle = "Numberic";
+            else
+                _objDocNumber.Model.NumericalStyle = "AlfaNumeric";
+
+            _objDocNumber.Model.Status = true;
+            if (_Tag == "NEW")
+            {
+                if (ClsGlobal.ConfirmSave == 1)
+                {
+                    var dialogResult = MessageBox.Show("Are you sure want to Save New Record..??", "Close Form", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+                    if (dialogResult == DialogResult.Yes)
+                        result = _objDocNumber.SaveDocNumbering();
+                    else
+                        return;
+                }
+                else
+                {
+                    result = _objDocNumber.SaveDocNumbering();
+                }
+            }
+            else
+            {
+                result = _objDocNumber.SaveDocNumbering();
+            }
+           
+            if (!string.IsNullOrEmpty(result))
+            {
+                MessageBox.Show("Data submit successfully", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ClearFld();
+                TxtDescription.Focus();
+            }
+            else
+            {
+                MessageBox.Show("Error occured during data submit", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        private void BtnCancel_Click(object sender, EventArgs e)
+        {
+            Tag = "";
+            ControlEnableDisable(true, false);
+            Text = "Document Numbering";
+            ClearFld();
+        }
+        private void TxtModule_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (_Tag == "NEW" && (e.KeyCode.ToString() == "" || e.KeyCode.ToString() == "F1"))
+            {
+                _SearchKey = string.Empty;
+                BtnModuleSearch.PerformClick();
+            }
+            else
+            {
+				_SearchKey = e.KeyCode.ToString() == "F1" || e.KeyCode.ToString() == "Escape" ? string.Empty : ((char)e.KeyCode).ToString();
+				ClsGlobal.MyKeyDown((char)e.KeyCode, e.KeyValue, e.KeyData.ToString(), "DELETE", _SearchKey, TxtModule, BtnModuleSearch, false);
+            }
+        }
+        private void BtnModuleSearch_Click(object sender, EventArgs e)
+        {
+			PickList frmPickList = new PickList("ModuleName", _SearchKey);
+			if (PickList.dt.Rows.Count > 0)
+			{
+				frmPickList.ShowDialog();
+				if (frmPickList.SelectedList.Count > 0 )
+				{
+					TxtModule.Text = frmPickList.SelectedList[0]["ModuleName"].ToString().Trim();
+					TxtModule.Tag = frmPickList.SelectedList[0]["ModuleCode"].ToString().Trim();
+				}
+				frmPickList.Dispose();
+			}
+			else
+			{
+				MessageBox.Show("No List Available in Document No !", "Mr. Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				TxtModule.Focus();
+				return;
+			}
+			TxtModule.Focus();
+			_SearchKey = string.Empty;
+        }
+        private void BtnDescSearch_Click(object sender, EventArgs e)
+        {
+            ClsGlobal.ModuleName = TxtModule.Text;
+            Common.PickList frmPickList = new Common.PickList("DocumentDesign", _SearchKey);
+			if (Common.PickList.dt.Rows.Count > 0)
+			{
+				frmPickList.ShowDialog();
+				if (frmPickList.SelectedList.Count > 0 && _Tag != "NEW")
+				{
+					DocId = Convert.ToInt32(frmPickList.SelectedList[0]["DocId"].ToString().Trim());
+					DataTable dt = _objDocNumber.GetDataDocNumbering(DocId);
+					TxtDescription.Text = dt.Rows[0]["DocDesc"].ToString();
+					TxtModule.Text = dt.Rows[0]["DocModule"].ToString();
+					if (ClsGlobal.DateType == "D")
+					{
+						TxtStartDate.Text = dt.Rows[0]["DocStartDate"].ToString();
+						TxtEndDate.Text = dt.Rows[0]["DocEndDate"].ToString();
+					}
+					else
+					{
+						TxtStartDate.Text = _objDateMiti.GetMiti(Convert.ToDateTime(dt.Rows[0]["DocStartDate"].ToString()));  //dt.Rows[0]["DocStartDate"].ToString();
+						TxtEndDate.Text = _objDateMiti.GetMiti(Convert.ToDateTime(dt.Rows[0]["DocEndDate"].ToString())); //dt.Rows[0]["DocEndDate"].ToString();
+					}
+					TxtPrefix.Text = dt.Rows[0]["DocPrefix"].ToString();
+					TxtSuffix.Text = dt.Rows[0]["DocSufix"].ToString();
+					TxtBodyLength.Text = dt.Rows[0]["DocBodyLength"].ToString();
+					TxtTotalLength.Text = dt.Rows[0]["DocTotalLength"].ToString();
+					TxtFillCharacter.Text = dt.Rows[0]["DocFillCharacter"].ToString();
+					TxtStartNo.Text = dt.Rows[0]["DocStartNo"].ToString();
+					TxtEndNo.Text = dt.Rows[0]["DocEndNo"].ToString();
+					TxtCurrentNo.Text = dt.Rows[0]["DocCurrentNo"].ToString();
+					ChkNumericFill.Text = dt.Rows[0]["DocIsNumericFill"].ToString();
+					//CmbBranch.SelectedValue = dt.Rows[0]["BranchName"].ToString();
+					//CmbBranch.Tag = (string.IsNullOrEmpty(dt.Rows[0]["BranchId"].ToString()) ? 0 : Convert.ToInt32(dt.Rows[0]["BranchId"].ToString()));
+					//CmbCompanyUnit.SelectedValue = dt.Rows[0]["CmpUnitName"].ToString();
+					//CmbCompanyUnit.Tag = (string.IsNullOrEmpty(dt.Rows[0]["CompanyUnitId"].ToString()) ? 0 : Convert.ToInt32(dt.Rows[0]["CompanyUnitId"].ToString()));
+					//CmbPrintDesign.SelectedValue = ((dt.Rows[0]["DesignName"].ToString() == "") ? 0 : Convert.ToInt32(dt.Rows[0]["DesignName"].ToString()));
+					//CmbPrintDesign.Tag = dt.Rows[0]["PrintDesignId"].ToString();
+
+					if (dt.Rows[0]["DocType"].ToString() == "Receive" || dt.Rows[0]["DocType"].ToString() == "Normal")
+						CmbNumberingType.SelectedIndex = 0;
+					else if (dt.Rows[0]["DocType"].ToString() == "Payment" || dt.Rows[0]["DocType"].ToString() == "Counter")
+						CmbNumberingType.SelectedIndex = 1;
+					else if (dt.Rows[0]["DocType"].ToString() == "Contra" || dt.Rows[0]["DocType"].ToString() == "Abberivated")
+						CmbNumberingType.SelectedIndex = 2;
+					else if (dt.Rows[0]["DocType"].ToString() == "Both")
+						CmbNumberingType.SelectedIndex = 3;
+
+					if (dt.Rows[0]["NumericalStyle"].ToString() == "Auto")
+						RbtnAuto.Checked = true;
+					else if (dt.Rows[0]["NumericalStyle"].ToString() == "Numberic")
+						RbtnNumeric.Checked = true;
+					else
+						RbtnAlphaNumeric.Checked = true;
+
+					TxtDescription.SelectAll();
+				}
+				frmPickList.Dispose();
+			}
+			else
+			{
+				MessageBox.Show("No List Available in Godown !", "Mr. Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				TxtDescription.Focus();
+				return;
+			}
+            _SearchKey = "";
+            TxtDescription.Focus();
+        }
+        private void TxtDescription_Validating(object sender, CancelEventArgs e)
+        {
+            if (_Tag == "" || this.ActiveControl == TxtDescription) return;
+			if (TxtDescription.Enabled == false) return;
+			if (string.IsNullOrEmpty(TxtDescription.Text.Trim()) && !string.IsNullOrEmpty(TxtModule.Text.Trim()))
+            {
+                MessageBox.Show("Description cannot be left blank.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
+                return;
+            }
+        }
+        private void TxtDescription_KeyDown(object sender, KeyEventArgs e)
+        {
+            _SearchKey = e.KeyCode.ToString() == "Escape" ? "" : e.KeyCode.ToString();
+            ClsGlobal.MyKeyDown((char)e.KeyCode, e.KeyValue, e.KeyData.ToString(), _Tag, _SearchKey, TxtDescription, BtnDescSearch, true);
+        }
+        private void TxtBodyLength_Validating(object sender, CancelEventArgs e)
+        {
+            if (_Tag == "" || this.ActiveControl == TxtBodyLength) return;
+            if (string.IsNullOrEmpty(TxtBodyLength.Text.Trim()) && !string.IsNullOrEmpty(TxtDescription.Text.Trim()))
+            {
+                MessageBox.Show("Body length cannot be left blank.", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
+				return;
+            }
+
+        }
+        private void TxtStartNo_Validating(object sender, CancelEventArgs e)
+        {
+            if (_Tag == "" || this.ActiveControl == TxtStartNo) return;
+            if (string.IsNullOrEmpty(TxtStartNo.Text.Trim()))
+            {
+                MessageBox.Show("StartNo  Cannot Left Blank...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
+                TxtStartNo.SelectAll();
+                return;
+            }
+            else
+            {
+                if (Convert.ToInt32(TxtStartNo.Text) > Convert.ToInt32(TxtEndNo.Text) || Convert.ToInt32(TxtStartNo.Text) <= 0)
+                {
+                    MessageBox.Show("Start number must lies between 0 and "+ (Convert.ToInt32(TxtEndNo.Text)+1)+"...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    e.Cancel = true;
+                    TxtStartNo.SelectAll();
+                    return;
+                }
+            }
+        }
+        private void TxtEndNo_Validating(object sender, CancelEventArgs e)
+        {
+            if (_Tag == "" || this.ActiveControl == TxtEndNo) return;
+            if (string.IsNullOrEmpty(TxtEndNo.Text.Trim()))
+            {
+                MessageBox.Show("EndNo  Cannot Left Blank...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
+                return;
+            }
+        }
+        private void TxtCurrentNo_Validating(object sender, CancelEventArgs e)
+        {
+            if (_Tag == "" || this.ActiveControl == TxtCurrentNo) return;
+            if (string.IsNullOrEmpty(TxtCurrentNo.Text.Trim()))
+            {
+                MessageBox.Show("CurrentNo  Cannot Left Blank...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
+                TxtCurrentNo.SelectAll();
+                return;
+            }
+            else
+            {
+                if (Convert.ToInt32(TxtCurrentNo.Text) > Convert.ToInt32(TxtEndNo.Text) || Convert.ToInt32(TxtCurrentNo.Text) <=0)
+                {
+                    MessageBox.Show("Current number must lies between 0 and "+(Convert.ToDecimal(TxtEndNo.Text)+1)+"...!", "Mr Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    e.Cancel = true;
+                    TxtCurrentNo.SelectAll();
+                    return;
+                }
+            }
+        }
+        private void TxtModule_Validating(object sender, CancelEventArgs e)
+        {
+			if (_Tag == "" || ActiveControl == TxtModule) return;
+			if (TxtModule.Enabled == false) return;
+			if (string.IsNullOrEmpty(TxtModule.Text.Trim()))
+			{
+				MessageBox.Show("Module Name Cannot Left Blank...!", "Mr. Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				e.Cancel = true;
+				return;
+			}
+			else
+			{
+				ComboLoad();
+				//BranchListForDocMapping();
+			}
+		
+		}
+        public void ControlEnableDisable(bool trb, bool fld)
+        {
+            BtnNew.Enabled = trb;
+            BtnEdit.Enabled = trb;
+            BtnDelete.Enabled = trb;
+            BtnExit.Enabled = trb;
+
+			TxtModule.Enabled = fld;
+            Utility.EnableDesibleColor(TxtModule, fld);
+			BtnModuleSearch.Enabled = fld;
+
+			TxtDescription.Enabled = fld;        
+            Utility.EnableDesibleColor(TxtDescription, fld);
+			BtnDescSearch.Enabled = fld;
+
+			TxtStartDate.Enabled = fld;
+            Utility.EnableDesibleDateColor(TxtStartDate, fld);
+            TxtEndDate.Enabled = fld;
+            Utility.EnableDesibleDateColor(TxtEndDate, fld);
+
+            groupBox2.Enabled = fld;
+
+            //CmbBranch.Enabled = fld;
+            //CmbCompanyUnit.Enabled = fld;
+            //CmbPrintDesign.Enabled = fld;
+            CmbNumberingType.Enabled = fld;           
+
+            TxtPrefix.Enabled = fld;
+            Utility.EnableDesibleColor(TxtPrefix, fld);
+
+            TxtSuffix.Enabled = fld;
+            Utility.EnableDesibleColor(TxtSuffix, fld);
+
+            TxtBodyLength.Enabled = fld;
+            Utility.EnableDesibleColor(TxtBodyLength, fld);
+
+            TxtTotalLength.Enabled = fld;
+            Utility.EnableDesibleColor(TxtTotalLength, fld);
+
+            ChkNumericFill.Enabled = fld;
+
+            //TxtFillCharacter.Enabled = fld;
+            //Utility.EnableDesibleColor(TxtFillCharacter, fld);
+
+            TxtStartNo.Enabled = fld;
+            Utility.EnableDesibleColor(TxtStartNo, fld);
+
+            TxtEndNo.Enabled = fld;
+            Utility.EnableDesibleColor(TxtEndNo, fld);
+
+            TxtCurrentNo.Enabled = fld;
+            Utility.EnableDesibleColor(TxtCurrentNo, fld);
+
+            BtnSave.Enabled = fld;
+            BtnCancel.Enabled = fld;
+
+            if (BtnNew.Enabled == true)
+            {
+                BtnNew.Focus();
+            }
+            else if (TxtModule.Enabled == true)
+            {
+                TxtModule.Focus();
+            }
+        }
+        private void ClearFld()
+        {
+            foreach (Control control in GrpBoxOption.Controls)
+            {
+                if (control is TextBox)
+                {
+                    if (control.Name != "TxtFillCharacter" && control.Name != "TxtModule")
+                        control.Text = "";
+                }
+            }
+			//TxtModule.Text = "";
+			CmbNumberingType.Items.Clear();
+			TxtDescription.Text = "";
+            TxtModule.Focus();
+        }
+        private void NewClick()
+        {
+            if (ClsGlobal.DateType == "D")
+            {
+                TxtStartDate.Text = ClsGlobal.CompanyStartDate.ToString();
+                TxtEndDate.Text = ClsGlobal.CompanyEndDate.ToString();
+            }
+            else
+            {
+                TxtStartDate.Text = _objDateMiti.GetMiti(Convert.ToDateTime(ClsGlobal.CompanyStartDate.ToString()));
+                TxtEndDate.Text = _objDateMiti.GetMiti(Convert.ToDateTime(ClsGlobal.CompanyEndDate.ToString()));
+            }
+        }
+
+		//private void ChkNumericFill_CheckedChanged(object sender, EventArgs e)
+		//{
+		//    if (ChkNumericFill.Checked == true)
+		//    {
+		//        TxtFillCharacter.Text = "0";
+		//        TxtFillCharacter.Enabled = false;
+		//    }
+		//    else
+		//    {
+		//        TxtFillCharacter.Text = "";
+		//        TxtFillCharacter.Enabled = false;
+		//    }
+		//}
+
+		private void TxtPrefix_Validating(object sender, CancelEventArgs e)
+		{
+			if (!string.IsNullOrEmpty(TxtPrefix.Text.Trim()))
+			{
+				if (!string.IsNullOrEmpty(_objDocNumber.IsExistsDocPrefix(TxtPrefix.Text, TxtModule.Text.Trim(), this.DocId, this._Tag)))
+				{
+					MessageBox.Show("Doc prefix already exist.", "Mr. Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					e.Cancel = true;
+				}
+			}
+		}
+
+		private void RbtnNumeric_Click(object sender, EventArgs e)
+        {
+            if (RbtnNumeric.Checked == true)
+            {
+                TxtSuffix.Text = "";
+                TxtSuffix.Enabled = false;
+                TxtPrefix.Text = "";
+                TxtPrefix.Enabled = false;
+            }
+            else
+            {
+                TxtSuffix.Enabled = true;
+                TxtPrefix.Enabled = true;
+            }
+        }
+
+		private void TxtStartDate_Validating(object sender, CancelEventArgs e)
+		{
+			if (_Tag == "" || ActiveControl == TxtStartDate) return;
+			if (TxtStartDate.Text != "  /  /")
+			{
+				try
+				{
+					if (ClsGlobal.CheckDateInsideCompanyPeriod(Convert.ToDateTime(TxtStartDate.Text)) == 1)
+					{
+						ClsGlobal.DateRangeMsg();
+						TxtStartDate.Focus();
+					}				
+				}
+				catch
+				{
+					MessageBox.Show("Please enter valid date.", "Mr. Solutions", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					TxtStartDate.Focus();
+				}
+			}
+			else
+			{
+				ClsGlobal.DateRangeMsg();
+				TxtStartDate.Focus();
+			}
+		}
+
+		private void TxtEndDate_Validating(object sender, CancelEventArgs e)
+		{
+			if (_Tag == "" || ActiveControl == TxtEndDate) return;
+			if (TxtEndDate.Text != "  /  /")
+			{
+				try
+				{
+					if (ClsGlobal.CheckDateInsideCompanyPeriod(Convert.ToDateTime(TxtEndDate.Text)) == 1)
+					{
+						ClsGlobal.DateRangeMsg();
+						TxtEndDate.Focus();
+					}
+				}
+				catch
+				{
+					MessageBox.Show("Please enter valid date.", "Mr. Solutions", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					TxtEndDate.Focus();
+				}
+			}
+			else
+			{
+				ClsGlobal.DateRangeMsg();
+				TxtEndDate.Focus();
+			}
+		}
+
+		private void TxtBodyLength_TextChanged(object sender, EventArgs e)
+		{
+			int.TryParse(TxtBodyLength.Text, out int _TxtBodyLengt);
+			TxtTotalLength.Text = (TxtPrefix.Text.Length + TxtSuffix.Text.Length + _TxtBodyLengt).ToString();
+			string endnumber = "";
+			for (int i = 1; i <= _TxtBodyLengt; i++)
+			{
+				endnumber = endnumber + "9";
+			}
+			TxtEndNo.Text = endnumber;
+			TxtEndNo.Enabled = false;
+			if (this._Tag == "NEW")
+			{
+				TxtStartNo.Text = "1";
+				TxtCurrentNo.Text = "1";
+			}
+
+			if (!string.IsNullOrEmpty(_objDocNumber.IsExistsDocDocNumber(TxtPrefix.Text, TxtSuffix.Text, _TxtBodyLengt, TxtModule.Text.Trim(), this.DocId, this._Tag)))
+			{
+				MessageBox.Show("Doc numbering already exist.", "Mr. Solution", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				TxtBodyLength.Focus();
+				return;
+			}
+		}
+
+		private void ChkNumericFill_CheckStateChanged(object sender, EventArgs e)
+		{
+			if (ChkNumericFill.Checked == true)
+				TxtFillCharacter.Text = "0";
+			else
+				TxtFillCharacter.Text = "";
+		}
+
+		private void ComboLoad()
+        {
+			if (TxtModule.Text == "Cash Bank")
+			{
+				CmbNumberingType.Enabled = true;
+				CmbNumberingType.Items.Clear();
+				CmbNumberingType.Items.Add("Receive");
+				CmbNumberingType.Items.Add("Payment");
+				CmbNumberingType.Items.Add("Contra");
+				CmbNumberingType.Items.Add("Both");
+				if (_Tag == "NEW")
+					CmbNumberingType.SelectedIndex = 0;
+				textBox1.Enabled = true;
+
+			}
+			else if (TxtModule.Text == "Sales Invoice")
+			{
+				CmbNumberingType.Enabled = true;
+				CmbNumberingType.Items.Clear();
+				CmbNumberingType.Items.Add("Normal");
+				CmbNumberingType.Items.Add("Counter");
+				CmbNumberingType.Items.Add("Abberivated");
+				if (_Tag == "NEW")
+					CmbNumberingType.SelectedIndex = 0;
+				textBox1.Enabled = true;
+			}
+			else
+			{
+				textBox1.Enabled = false;
+				CmbNumberingType.Enabled = false;
+				CmbNumberingType.Items.Clear();
+			}
+
+			//DataTable dtUser = _objUser.GetUserList();
+			//if (dtUser.Rows.Count > 0)
+			//{
+			//    Dictionary<string, string> _CmbType = new Dictionary<string, string>();
+			//    foreach (DataRow ro in dtUser.Rows)
+			//    {
+			//        _CmbType.Add(ro["UserCode"].ToString(), ro["UserName"].ToString());
+			//    }
+			//    CmbUser.DataSource = new BindingSource(_CmbType, null);
+			//    CmbUser.DisplayMember = "Value";
+			//    CmbUser.ValueMember = "Key";
+			//    if (_Tag == "NEW")
+			//        CmbUser.SelectedIndex = 0;
+			//}
+
+			//DataTable dtBranch = _objBranch.GetDataBranchList();
+			//if (dtBranch.Rows.Count > 0)
+			//{
+			//    CmbBranch.Enabled = true;
+			//    Dictionary<string, string> _CmbType = new Dictionary<string, string>();
+			//    foreach (DataRow ro in dtBranch.Rows)
+			//    {
+			//        _CmbType.Add(ro["BranchId"].ToString(), ro["BranchName"].ToString());
+			//    }
+			//    CmbBranch.DataSource = new BindingSource(_CmbType, null);
+			//    CmbBranch.DisplayMember = "Value";
+			//    CmbBranch.ValueMember = "Key";
+			//    if (_Tag == "NEW")
+			//        CmbBranch.SelectedIndex = 0;
+			//}
+
+			//DataTable dtComapnyUnit = _objComUnit.GetDataCompanyUnitList();
+			//if (dtComapnyUnit.Rows.Count > 0)
+			//{
+			//    CmbCompanyUnit.Enabled = true;
+			//    Dictionary<string, string> _CmbType = new Dictionary<string, string>();
+			//    foreach (DataRow ro in dtComapnyUnit.Rows)
+			//    {
+			//        _CmbType.Add(ro["CompanyUnitId"].ToString(), ro["CmpUnitName"].ToString());
+			//    }
+			//    CmbCompanyUnit.DataSource = new BindingSource(_CmbType, null);
+			//    CmbCompanyUnit.DisplayMember = "Value";
+			//    CmbCompanyUnit.ValueMember = "Key";
+			//    if (_Tag == "NEW")
+			//        CmbCompanyUnit.SelectedIndex = 0;
+			//}
+		}
+
+		public void BranchListForDocMapping()
+		{
+			DataTable dt = new DataTable();
+			DataRow dr = default(DataRow);
+			dt.Columns.Add("Tag", System.Type.GetType("System.Boolean"));			
+			dt.Columns.Add("Branch");
+			dt.Columns.Add("StartDate");
+			dt.Columns.Add("EndDate");
+			dtBranchForDocMapping =_objDocNumber.BranchListForDocMapping(TxtModule.Tag.ToString());
+			DocDataRows = dtBranchForDocMapping.Select("Tag='True'");
+			foreach (DataRow row in dtBranchForDocMapping.Rows)
+			{
+				if (dtBranchForDocMapping.Rows.Count > 0)
+				{
+					dr = dt.NewRow();
+					dr["Tag"] = row["Tag"].ToString();
+					dr["Branch"] = row["BranchName"].ToString();
+					dr["StartDate"] = row["StartDate"].ToString();
+					dr["EndDate"] = row["EndDate"].ToString();				
+					dr["BranchId"] = row["BranchId"].ToString();
+					dt.Rows.Add(dr);
+				}
+			}
+
+			GridBranch.DataSource = dt;
+			GridBranch.Columns["Tag"].Width = 40;			
+			GridBranch.Columns["Branch"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+			GridBranch.Columns["Branch"].ReadOnly = true;		
+			//GridBranch.Columns["BranchId"].Visible = false;
+			GridBranch.AutoGenerateColumns = false;
+			foreach (DataGridViewRow ro in GridBranch.Rows)
+			{
+				if (GridBranch.RowCount > 0)
+				{
+					if (Convert.ToBoolean(ro.Cells[0].Value) == true)
+					{
+						ro.Cells[0].ReadOnly = true;
+					}
+				}
+			}
+		}
+
+	}
+}

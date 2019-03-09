@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link rel="shortcut icon" type="image/x-icon" href="../Images/acmelogo.ico" />
+    <meta name="description" content="The acme Online ERP Solution for your businesses. You can get Dashboard,Finance,Inventory,Accounting,Purchase and Sales management and many more modules and features.">
+    <meta name="keywords" content="Accounting software in Nepal,Best Accounting software,Accounting software,Online Accounting software,ERP,ERP in Nepal, Best ERP in nepal,Dashboard,Finance,Inventory,Accounting,Purchase and Sales management">
+    <title>ACME|Company List</title>
+    <script type='text/javascript' src='~/Scripts/jquery-3.3.1.min.js'></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <script type="text/javascript" src="../Scripts/bootstrap.min.js"></script>
+    <link href="../Content/bootstrap.css" rel="stylesheet" />
+    <style type="text/css">
+        .page {
+            /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#959595+0,565656+46,4f4f4f+50,4f4f4f+53,686868+77,5e5e5e+87,333333+100 */
+            background: #959595; /* Old browsers */
+            background: -moz-linear-gradient(-45deg, #959595 0%, #565656 46%, #4f4f4f 50%, #4f4f4f 53%, #686868 77%, #5e5e5e 87%, #333333 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(-45deg, #959595 0%,#565656 46%,#4f4f4f 50%,#4f4f4f 53%,#686868 77%,#5e5e5e 87%,#333333 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(135deg, #959595 0%,#565656 46%,#4f4f4f 50%,#4f4f4f 53%,#686868 77%,#5e5e5e 87%,#333333 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#959595', endColorstr='#333333',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+            display: flex;
+            flex-direction: column;
+            height: calc(100%);
+            position: absolute;
+            place-content: center;
+            width: calc(100%);
+        }
+
+        a:hover{text-decoration:none;}
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="panel-body">
+            <div class="container" style="min-height:400px; width:700px;">
+                <table class="table table-bordered" style="background:#FFF;">
+                    <thead>
+                        <tr>
+                            <th colspan="4" class="text-center"><h4>SELECT COMPANY</h4></th>
+                        </tr>
+                        <tr>
+                            <th width="100px">Initial</th>
+                            <th>Company Name</th>
+                            <th width="100px">Start Date</th>
+                            <th width="100px">End Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            System.Data.DataTable dt1 = (System.Data.DataTable)ViewBag._CompanyList;
+                            foreach (System.Data.DataRow dr in dt1.Rows)
+                            {
+                                <tr>
+                                    <td>@dr["IniTial"].ToString()</td>
+                                    <td><a href="~/Selection/ChooseCompany?DbName=@dr["Db Name"].ToString()&IniTial=@dr["IniTial"].ToString()">@dr["Company Name"].ToString()</a></td>
+                                    <td>@Convert.ToDateTime(dr["Start Date"].ToString()).ToShortDateString()</td>
+                                    <td>@Convert.ToDateTime(dr["End Date"].ToString()).ToShortDateString()</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

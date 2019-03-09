@@ -1,0 +1,30 @@
+﻿@model IEnumerable<DataAccessLayer.MasterSetup.AccountSubGroupViewModel>
+<div class="panel-body">
+    <table class="table table-striped table-bordered dataTable" id="myJqueryDataTable" title="Account Group">
+        <thead>
+            <tr>
+                <th nowrap>#</th>
+                <th nowrap>Sub Group</th>
+                <th nowrap>Short Name</th>
+                <th nowrap>Group Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td nowrap>
+                            <a href="#" url="/master/frmaccountsubgroup?Id=@item.AccountSubGrpId&Tag=EDIT" class="mypartialpage" title="Edit" data-toggle="tooltip" data-original-title="Edit"><span class="glyphicon glyphicon-edit text-primary"></span></a> &nbsp;
+                            <a href="~/masterEntry/deleteaccountsubgroup?Id=@item.AccountSubGrpId" data-toggle="confirmation" data-title="Do You Want Delete...?"><span class="glyphicon glyphicon-trash text-danger"></span></a>
+                        </td>
+                        <td nowrap>@item.AccountSubGrpDesc</td>
+                        <td nowrap>@item.AccountSubGrpShortName</td>
+                        <td nowrap>@item.AccountGrpDesc</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+<script src="~/Scripts/mydatatables.js"></script>

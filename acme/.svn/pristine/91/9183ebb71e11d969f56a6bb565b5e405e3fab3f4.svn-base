@@ -1,0 +1,22 @@
+﻿<table class="table table-bordered dataTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Firstname</th>
+            <th>LastName</th>
+        </tr>
+    </thead>
+    <tbody>
+       
+        <tr>
+            <td>1</td>
+            <td>SAs</td>
+            <td>SA</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>SASA</td>
+            <td>SASA</td>
+        </tr>
+    </tbody>
+</table>

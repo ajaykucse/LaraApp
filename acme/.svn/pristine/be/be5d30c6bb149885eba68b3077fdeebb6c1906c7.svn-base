@@ -1,0 +1,866 @@
+﻿using acmedesktop.MyInputControls;
+using DataAccessLayer.Common;
+using DataAccessLayer.Interface.MasterSetup;
+using DataAccessLayer.MasterSetup;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace acmedesktop.DataTransaction
+{
+    public partial class FrmTerm : Form
+    {
+        MyGridNumericTextBox TxtGridRatePercent;
+        MyGridNumericTextBox TxtGridAmount;
+        public decimal _Qty { get; set; }
+        public decimal TotalTermAmt { get; set; }
+        public decimal _TotalBasicAmt { get; set; }
+        string _ExistTermData = "", _Module = "";
+        string myGridTxtAmt = "";
+        int _ProductId = 0;
+        ISalesBillingTerm _objSalesBillingTerm = new ClsSalesBillingTerm();
+        string[] arrRatepercent1;
+        public string TermDetails { get; set; }
+        public FrmTerm(string Module, decimal BasicAmt, string ExistTermData, decimal Qty, int ProductId)
+        {
+            InitializeComponent();
+
+            _ExistTermData = ExistTermData;
+            _Module = Module;
+            _Qty = Qty;
+            _ProductId = ProductId;
+            _TotalBasicAmt = BasicAmt;
+
+            TxtGridRatePercent = new MyGridNumericTextBox(Grid);
+            TxtGridRatePercent.Validating += new System.ComponentModel.CancelEventHandler(this.TxtGridRatePercent_Validating);
+
+            TxtGridAmount = new MyGridNumericTextBox(Grid);
+            TxtGridAmount.Validating += new System.ComponentModel.CancelEventHandler(this.TxtGridAmount_Validating);
+
+            GridControlMode(false);
+            TxtBasicAmount.Text = BasicAmt.ToString();
+        }
+        private void FrmTerm_Load(object sender, EventArgs e)
+		{
+            Grid.AutoGenerateColumns = false;
+            TxtBasicAmount.BackColor = SystemColors.Control;
+            TxtTotalTermAmount.BackColor = SystemColors.Control;
+            DataTable dt = _objSalesBillingTerm.GetTermListForTermCalculation(_Module,ClsGlobal.BranchId,_ProductId);
+            dt.Columns.Add("Amount");
+            decimal  _totalBasicAmt = 0; ;
+            decimal.TryParse(TxtBasicAmount.Text, out decimal _basicAmt);
+            _totalBasicAmt = _basicAmt;
+            dt.DefaultView.Sort = "TermPosition ASC";
+            dt = dt.DefaultView.ToTable();
+            #region ----------- if exist data update rate percent and manual value in datatable-------
+            if (!string.IsNullOrEmpty(_ExistTermData))
+            {
+                string[] val = _ExistTermData.Split('|');
+                string sign = val[0];
+                string sn = val[1];
+                string ratepercent = val[2];
+                string amount = val[3];
+
+                string[] arrsign = sign.Split(',');
+                string[] arrsn = sn.Split(',');
+                string[] arrRatepercent = ratepercent.Split(',');
+                string[] arrAmount = amount.Split(',');
+
+                for (int j = 0; j < arrsn.Length; j++)
+                {
+                    DataRow[] dr1 = dt.Select("TermId='" + arrsn[j] + "'");
+                    dr1[0]["TermRate"] = arrRatepercent[j];
+                    if (Convert.ToDecimal(arrRatepercent[j]) == 0)
+                        dr1[0]["Amount"] = ClsGlobal.DecimalFormate(Convert.ToDecimal(arrAmount[j]), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                    else
+                        dr1[0]["Amount"] = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+
+                    _ExistTermData = "";
+                    dt.AcceptChanges();
+                }
+            }
+            #endregion
+            int i = 1;
+            #region ----------- calculate term value from datatable DT and update in Grid -------
+            foreach (DataRow r in dt.Rows)
+            {
+                if (dt.Rows.Count > 0)
+                {
+                    string formula = "";
+                    var index = Grid.Rows.Add();
+                    Grid.Rows[index].Cells["SNo"].Value = i;
+                    Grid.Rows[index].Cells["TermId"].Value = r["TermId"].ToString();
+                    Grid.Rows[index].Cells["TermDesc"].Value = r["TermDesc"].ToString();
+                    Grid.Rows[index].Cells["Basis"].Value = r["Basis"].ToString();
+                    Grid.Rows[index].Cells["Sign"].Value = r["Sign"].ToString();
+                    Grid.Rows[index].Cells["TermRate"].Value = ClsGlobal.DecimalFormate(Convert.ToDecimal(r["TermRate"].ToString()), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                    decimal.TryParse(r["TermRate"].ToString(), out decimal output);
+                    decimal.TryParse(r["Amount"].ToString(), out decimal amt);
+                    Grid.Rows[index].Cells["Formula"].Value = r["Formula"].ToString();
+                    Grid.Rows[index].Cells["TermPosition"].Value = r["TermPosition"].ToString();
+                    formula = r["Formula"].ToString();
+                    if (r["Basis"].ToString().Trim().ToUpper() == "V")
+                    {
+                        if (amt > 0)
+                        {
+                            Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(amt, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                        else
+                        {
+                            if (output > 0)
+                            {
+                                if (i == 1)
+                                {
+                                    Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(((_basicAmt / 100) * output), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                                }
+                                else
+                                {
+                                    if (string.IsNullOrEmpty(formula))
+                                    {
+                                        decimal _CalCurrentBasicAmt = CalCurrentBasicAmt(i - 1);
+                                        Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(((_CalCurrentBasicAmt / 100) * output), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                                    }
+                                    else
+                                    {
+                                        DataTable GridTable = ClsGlobal.GridToDataTable(Grid);
+                                        DataTable myTable = new DataTable();
+                                        myTable = GridTable.Clone();
+                                        decimal _CalCurrentBasicAmt = 0;
+                                        _CalCurrentBasicAmt = CalBasicAmt4Formula(formula, GridTable, myTable);
+                                        Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(((_CalCurrentBasicAmt / 100) * output), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                                    }
+                                }
+                            }
+                            else
+                                Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                    }
+                    else if (r["Basis"].ToString().Trim().ToUpper() == "Q")
+                    {
+                        if (amt > 0)
+                        {
+                            Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(Convert.ToDecimal(r["Amount"].ToString()), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                        else
+                        {
+                            if (output > 0)
+                                Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate((_Qty * output), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                            else
+                                Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                    }
+                    else if (r["Basis"].ToString().Trim().ToUpper() == "R")
+                    {
+                        decimal roundoffVal = Convert.ToDecimal(CalTotalForRoundOff());
+                        if (Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) >= 50)
+                        {
+                            if (r["Sign"].ToString().Trim() == "+")
+                            {
+                                decimal a = (1 - Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) / 100);
+                                Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(a, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                            }
+                            else
+                            {
+                                Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                            }
+                        }
+                        else
+                        {
+                            if (r["Sign"].ToString().Trim() == "-")
+                            {
+                                decimal b = (Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) / 100);
+                                Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(b, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                            }
+                            else
+                            {
+                                Grid.Rows[index].Cells["Amount"].Value = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                            }
+                        }
+                    }
+                    i++;
+                }
+            }
+            #endregion
+            CalTotal();
+            ClsGlobal.DisableGridColumnsSorting(Grid);
+        }
+        private void FrmTerm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter && this.ActiveControl != Grid)
+                SendKeys.Send("{Tab}");
+            else if (e.KeyCode == Keys.Escape)
+            {
+                if (TxtGridRatePercent.Visible == true)
+                {
+                    GridControlMode(false);
+                    TxtGridRatePercent.Enabled = false;
+                    TxtGridRatePercent.Visible = false;
+                    TxtGridAmount.Enabled = false;
+                    TxtGridAmount.Visible = false;
+                    Grid.Focus();
+                }
+                else
+                    BtnOK.PerformClick();
+            }
+        }
+        private void BtnOK_Click(object sender, EventArgs e)
+        {
+            string val1 = "", val2 = "", val3 = "", val4 = "";
+            foreach (DataGridViewRow ro in Grid.Rows)
+            {
+                val1 += "," + ro.Cells["Sign"].Value.ToString().Trim();
+                val2 += "," + ro.Cells["TermId"].Value.ToString().Trim();
+                val3 += "," + ro.Cells["TermRate"].Value.ToString().Trim();
+                val4 += "," + ro.Cells["Amount"].Value.ToString().Trim();
+            }
+            if (val1.Length > 0)
+                TermDetails = val1.Substring(1) + "|" + val2.Substring(1) + "|" + val3.Substring(1) + "|" + val4.Substring(1);
+            decimal.TryParse(TxtTotalTermAmount.Text, out decimal output);
+            TotalTermAmt = output;
+            this.Close();
+        }
+        private void TxtGridRatePercent_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            int indx = Grid.CurrentRow.Index;
+            decimal totalRecAmt = 0;
+            int i = 0;
+            decimal.TryParse(TxtGridRatePercent.Text, out decimal output);
+            TxtGridRatePercent.Text = ClsGlobal.DecimalFormate(output, 1, ClsGlobal._AmountDecimalFormat).ToString();
+
+            decimal percent = Convert.ToDecimal(Grid[7, indx].Value.ToString());
+            if (output <= 0 && Convert.ToDecimal(TxtGridAmount.Text) <= 0)
+                TxtGridAmount.Text = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+            else if (output <= 0 && percent > 0)
+                TxtGridAmount.Text = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+
+            totalRecAmt = Convert.ToDecimal(TxtBasicAmount.Text);
+
+            if (!string.IsNullOrEmpty(_ExistTermData))
+            {
+                string[] val1 = _ExistTermData.Split('|');
+                string ratepercent1 = val1[2];
+                arrRatepercent1 = ratepercent1.Split(',');
+            }
+
+            foreach (DataGridViewRow ro in Grid.Rows)
+            {
+                if (indx == i)
+                {
+                    if (ro.Cells["Basis"].Value.ToString().Trim().ToUpper() == "V")
+                    {
+                        string formula = ro.Cells["Formula"].Value.ToString();
+                        if (output > 0)
+                        {
+                            if (string.IsNullOrEmpty(formula))
+                            {
+                                TxtGridAmount.Text = ClsGlobal.DecimalFormate(((totalRecAmt / 100) * output), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                            }
+                            else
+                            {
+                                DataTable GridTable = ClsGlobal.GridToDataTable(Grid);
+                                DataTable myTable = new DataTable();
+                                myTable = GridTable.Clone();
+                                totalRecAmt = CalBasicAmt4Formula(formula, GridTable, myTable);
+                                TxtGridAmount.Text = ClsGlobal.DecimalFormate((totalRecAmt / 100 * output), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                            }
+                        }
+
+                        myGridTxtAmt = TxtGridAmount.Text;
+                        SetTextBoxValueToGrid();
+                    }
+                    else if (ro.Cells["Basis"].Value.ToString().Trim().ToUpper() == "Q")
+                    {
+                        if (output > 0)
+                        {
+                            TxtGridAmount.Text = ClsGlobal.DecimalFormate((_Qty * output), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+
+                        myGridTxtAmt = TxtGridAmount.Text;
+                        SetTextBoxValueToGrid();
+                    }
+
+                    TxtGridAmount.Focus();
+
+                    decimal.TryParse(TxtGridAmount.Text, out decimal txtBoxGridAmount);
+
+                    if (ro.Cells["Basis"].Value.ToString().Trim().ToUpper() != "R")
+                        CalTermAmount(indx, txtBoxGridAmount, "P");
+                    return;
+                }
+                else
+                {
+                    if (ro.Cells["Amount"].Value != null)
+                    {
+                        string sign = ro.Cells["Sign"].Value.ToString();
+                        decimal.TryParse(ro.Cells["Amount"].Value.ToString(), out decimal val);
+
+                        if (sign.Trim() == "-")
+                            totalRecAmt += -val;
+                        else
+                            totalRecAmt += +val;
+                    }
+                }
+                i++;
+            }
+        }
+        private void TxtGridAmount_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            int indx = Grid.CurrentRow.Index;
+            if (myGridTxtAmt != TxtGridAmount.Text)
+            {
+                Grid[7, indx].Value = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                TxtGridRatePercent.Text = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+            }
+
+            if (SetTextBoxValueToGrid() == true)
+            {
+                GridControlMode(false);
+
+                if (Grid.Rows.Count - 1 == indx)
+                {
+                    Grid.CurrentCell = Grid.Rows[Grid.CurrentRow.Index].Cells["TermRate"];
+                    GridControlMode(false);
+                    Grid.ClearSelection();
+                }
+                else
+                {
+                    Grid.CurrentCell = Grid.Rows[Grid.CurrentRow.Index + 1].Cells["TermRate"];
+                    if (Grid[2, indx + 1].Value.ToString().Trim().ToUpper() == "R")
+                    {
+                        GridControlMode(false);
+                        Grid.ClearSelection();
+                    }
+                    else
+                        GridControlMode(true);
+                }
+            }
+
+            decimal totalRecAmt = 0;
+            int i = 0;
+
+            totalRecAmt = Convert.ToDecimal(TxtBasicAmount.Text);
+
+            foreach (DataGridViewRow ro in Grid.Rows)
+            {
+                if (indx == i)
+                {
+                    decimal.TryParse(Grid[8, indx].Value.ToString(), out decimal val);
+                    if (ro.Cells["Basis"].Value.ToString().Trim().ToUpper() != "R")
+                    {
+                        CalTermAmount(indx, val, "A");
+                    }
+                    return;
+                }
+                else
+                {
+                    if (ro.Cells["Amount"].Value != null)
+                    {
+                        string sign = ro.Cells["Sign"].Value.ToString();
+                        decimal.TryParse(ro.Cells["Amount"].Value.ToString(), out decimal val);
+
+                        if (sign.Trim() == "-")
+                            totalRecAmt += -val;
+                        else
+                            totalRecAmt += +val;
+                    }
+                }
+                i++;
+            }
+
+            CalTotal();
+        }
+        private bool SetTextBoxValueToGrid()
+        {
+            DataGridViewRow ro = new DataGridViewRow();
+            ro = Grid.Rows[Grid.CurrentRow.Index];
+            ro.Cells["TermRate"].Value = TxtGridRatePercent.Text.Trim();
+            ro.Cells["Amount"].Value = TxtGridAmount.Text.Trim();
+            return true;
+        }
+        private void SetGridValueToTextBox(int row)
+        {
+            TxtGridRatePercent.Text = "";
+            TxtGridAmount.Text = "";
+
+            if (Grid["TermRate", row].Value != null) TxtGridRatePercent.Text = Grid["TermRate", row].Value.ToString();
+            if (Grid["Amount", row].Value != null) TxtGridAmount.Text = Grid["Amount", row].Value.ToString();
+        }
+        private void GridControlMode(bool mode)
+        {
+            if (Grid.CurrentRow != null)
+            {
+                int currRo = Grid.CurrentRow.Index;
+                int colindex = 0;
+                if (mode == true)
+                {
+                    colindex = Grid.Columns["TermRate"].Index;
+                    TxtGridRatePercent.Size = this.Grid.GetCellDisplayRectangle(colindex, currRo, true).Size;
+                    TxtGridRatePercent.Location = this.Grid.GetCellDisplayRectangle(colindex, currRo, true).Location;
+
+                    colindex = Grid.Columns["Amount"].Index;
+                    TxtGridAmount.Size = this.Grid.GetCellDisplayRectangle(colindex, currRo, true).Size;
+                    TxtGridAmount.Location = this.Grid.GetCellDisplayRectangle(colindex, currRo, true).Location;
+                }
+                SetGridValueToTextBox(currRo);
+            }
+
+            TxtGridRatePercent.Enabled = mode;
+            TxtGridRatePercent.Visible = mode;
+
+            TxtGridAmount.Enabled = mode;
+            TxtGridAmount.Visible = mode;
+
+            if (mode == true)
+            {
+                TxtGridRatePercent.Focus();
+            }
+        }
+        private decimal CalCurrentBasicAmt(int RowPosition)
+        {
+            int i = 0;
+            decimal  _totalBasicAmt = 0;
+            decimal.TryParse(TxtBasicAmount.Text, out decimal _basicAmt);
+            _totalBasicAmt = _basicAmt;
+
+            foreach (DataGridViewRow ro in Grid.Rows)
+            {
+                if (i < RowPosition)
+                {
+                    if (ro.Cells["Amount"].Value != null)
+                    {
+                        string sign = ro.Cells["Sign"].Value.ToString().Trim();
+                        decimal.TryParse(ro.Cells["Amount"].Value.ToString().Trim(), out decimal val);
+                        if (sign == "-")
+                            _totalBasicAmt += -val;
+                        else
+                            _totalBasicAmt += +val;
+                    }
+                }
+                else
+                    break;
+                i++;
+            }
+            return _totalBasicAmt;
+        }
+        private decimal CalBasicAmt4Formula(string formula, DataTable GridTable, DataTable FilterGridTable)
+        {
+            
+            decimal _totalBasicAmt = 0; ;
+            decimal.TryParse(TxtBasicAmount.Text, out decimal _basicAmt);
+            _totalBasicAmt = _basicAmt;
+
+            string termId = "";
+
+            string[] arrFormula = formula.Split(',');
+            if (arrFormula[0].ToLower() == "b" && arrFormula.Length != 1)
+                termId = formula.Remove(0, 2);
+            else
+            {
+                termId = formula;
+                _totalBasicAmt = 0;
+            }
+
+            if (arrFormula.Length == 1 && arrFormula[0].ToLower() == "b")
+            {
+                _totalBasicAmt = _basicAmt;
+            }
+            else
+            {
+                string[] termId1 = termId.Split(',');
+                for (int k = 0; k < termId1.Length; k++)
+                {
+                    DataRow[] rowArray = GridTable.Select("TermPosition='" + termId1[k] + "'");
+                    foreach (DataRow item in rowArray)
+                    {
+                        FilterGridTable.ImportRow(item);
+                    }
+                }
+
+                foreach (DataRow item in FilterGridTable.Rows)
+                {
+                    string sign = item["Sign"].ToString().Trim();
+                    decimal.TryParse(item["Amount"].ToString().Trim(), out decimal val);
+                    if (sign == "-")
+                        _totalBasicAmt += -val;
+                    else
+                        _totalBasicAmt += +val;
+                }
+            }
+
+            return _totalBasicAmt;
+        }
+        private void CalTotal()
+        {
+            decimal totalRecAmt = 0;
+            foreach (DataGridViewRow ro in Grid.Rows)
+            {
+                if (ro.Cells["Amount"].Value != null)
+                {
+                    string sign = ro.Cells["Sign"].Value.ToString();
+                    decimal.TryParse(ro.Cells["Amount"].Value.ToString(), out decimal val);
+
+                    if (sign.Trim() == "-")
+                        totalRecAmt += -val;
+                    else
+                        totalRecAmt += +val;
+                }
+            }
+            TxtTotalTermAmount.Text = ClsGlobal.DecimalFormate(totalRecAmt, 1, ClsGlobal._AmountDecimalFormat).ToString();
+        }
+        private void CalTermAmount(int RowPosition, decimal txtBoxGridAmount, string typ)
+        {
+            int k = 1;
+
+            for (int j = RowPosition + 1; j < Grid.RowCount; j++)
+            {
+                DataGridViewRow r = Grid.Rows[j];
+                decimal.TryParse(r.Cells["TermRate"].Value.ToString(), out decimal ratepercent);
+                if (ratepercent > 0 && r.Cells["Basis"].Value.ToString().Trim().ToUpper() == "V")
+                {
+                    decimal _CalCurrentBasicAmt = CalCurrentBasicAmt(RowPosition + k);
+                    if (ratepercent > 0 && Convert.ToDecimal(r.Cells["Amount"].Value.ToString()) > 0)
+                    {
+                        string formula = r.Cells["Formula"].Value.ToString();
+                        if (string.IsNullOrEmpty(formula.Trim()))
+                        {
+                            r.Cells["Amount"].Value = ClsGlobal.DecimalFormate((_CalCurrentBasicAmt / 100 * ratepercent), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                        else
+                        {
+                            DataTable GridTable = ClsGlobal.GridToDataTable(Grid);
+                            DataTable myTable = new DataTable();
+                            myTable = GridTable.Clone();
+                            _CalCurrentBasicAmt = CalBasicAmt4Formula(formula, GridTable, myTable);
+                            r.Cells["Amount"].Value = ClsGlobal.DecimalFormate((_CalCurrentBasicAmt / 100 * ratepercent), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                    }
+                    else
+                    {
+                        r.Cells["Amount"].Value = r.Cells["Amount"].Value.ToString();
+                    }
+
+                    if (k == 1 && typ.Trim().ToUpper() == "A")
+                        TxtGridAmount.Text = ClsGlobal.DecimalFormate((_CalCurrentBasicAmt / 100 * ratepercent), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                }
+                else if (ratepercent <= 0 && r.Cells["Basis"].Value.ToString().Trim().ToUpper() == "Q")
+                {
+                    if (ratepercent > 0 && Convert.ToDecimal(r.Cells["Amount"].Value.ToString()) > 0)
+                        r.Cells["Amount"].Value = ClsGlobal.DecimalFormate((_Qty * ratepercent), 1, ClsGlobal._AmountDecimalFormat).ToString();
+                    else
+                        r.Cells["Amount"].Value = r.Cells["Amount"].Value.ToString();
+                }
+                else if (r.Cells["Basis"].Value.ToString().Trim().ToUpper() == "R")
+                {
+                    decimal roundoffVal = Convert.ToDecimal(CalTotalForRoundOff());
+                    if (Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) >= 50)
+                    {
+                        if (r.Cells["Sign"].Value.ToString().Trim() == "+")
+                        {
+                            decimal a = 1 - Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) / 100;
+                            r.Cells["Amount"].Value = ClsGlobal.DecimalFormate(a, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                        else
+                        {
+                            r.Cells["Amount"].Value = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                    }
+                    else
+                    {
+                        if (r.Cells["Sign"].Value.ToString().Trim() == "-")
+                        {
+                            decimal b = Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) / 100;
+                            r.Cells["Amount"].Value = ClsGlobal.DecimalFormate(b, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                        else
+                        {
+                            r.Cells["Amount"].Value = ClsGlobal.DecimalFormate(0, 1, ClsGlobal._AmountDecimalFormat).ToString();
+                        }
+                    }
+                }
+                k++;
+            }
+
+            CalTotal();
+        }
+        private void Grid_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.Handled = true;
+                GridControlMode(true);
+            }
+        }
+        private string CalTotalForRoundOff()
+        {
+            decimal totalAmt = 0;
+            decimal.TryParse(TxtBasicAmount.Text, out decimal _basicAmt);
+            totalAmt = _basicAmt;
+            foreach (DataGridViewRow ro in Grid.Rows)
+            {
+                if (ro.Cells["Amount"].Value != null)
+                {
+                    string sign = ro.Cells["Sign"].Value.ToString().Trim();
+                    if (ro.Cells["Basis"].Value.ToString().Trim().ToUpper() != "R")
+                    {
+                        decimal.TryParse(ro.Cells["Amount"].Value.ToString().Trim(), out decimal val);
+
+                        if (sign.Trim() == "-")
+                            totalAmt += -val;
+                        else
+                            totalAmt += +val;
+                    }
+                }
+            }
+
+            return ClsGlobal.DecimalFormate(totalAmt, 1, ClsGlobal._AmountDecimalFormat).ToString();
+        }
+
+        public decimal TermAmount()
+        {
+            DataTable dt = _objSalesBillingTerm.GetTermListForTermCalculation(_Module, ClsGlobal.BranchId, _ProductId);
+            dt.Columns.Add("Amount");
+            dt.DefaultView.Sort = "TermPosition ASC";
+            dt = dt.DefaultView.ToTable();
+            int i = 1;
+            if (!string.IsNullOrEmpty(_ExistTermData))
+            {
+                string[] val = _ExistTermData.Split('|');
+                string sign = val[0];
+                string sn = val[1];
+                string ratepercent = val[2];
+                string amount = val[3];
+                string[] arrsign = sign.Split(',');
+                string[] arrsn = sn.Split(',');
+                string[] arrRatepercent = ratepercent.Split(',');
+                string[] arrAmount = amount.Split(',');
+                for (int j = 0; j < arrsn.Length; j++)
+                {
+                    DataRow[] dr1 = dt.Select("TermId='" + arrsn[j] + "'");
+                    dr1[0]["TermRate"] = arrRatepercent[j];
+                    if (Convert.ToDecimal(arrRatepercent[j]) == 0)
+                        dr1[0]["Amount"] = arrAmount[j];
+                    else
+                        dr1[0]["Amount"] = "0";
+                    _ExistTermData = "";
+                    dt.AcceptChanges();
+                }
+            }
+
+            if (dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    string formula = "";
+                    decimal.TryParse(row["TermRate"].ToString(), out decimal TermRate);
+                    formula = row["Formula"].ToString();
+                    string TermId = row["TermId"].ToString();
+                    DataRow[] dr1 = dt.Select("TermId='" + TermId + "'");
+                    decimal.TryParse(row["Amount"].ToString(), out decimal amt);
+
+                    if (row["Basis"].ToString().Trim().ToUpper() == "V")
+                    {
+                        if (TermRate > 0)
+                        {
+                            if (i == 1)
+                            {
+                                dr1[0]["Amount"] = ((_TotalBasicAmt / 100) * TermRate).ToString();
+                                dt.AcceptChanges();
+                            }
+                            else
+                            {
+                                if (string.IsNullOrEmpty(formula))
+                                {
+                                    decimal _CalCurrentBasicAmt = CalCurrentBasicAmt(dt, i - 1, _TotalBasicAmt);
+                                    dr1[0]["Amount"] = ((_CalCurrentBasicAmt / 100) * TermRate).ToString();
+                                    dt.AcceptChanges();
+                                }
+                                else
+                                {
+                                    DataTable myTable = new DataTable();
+                                    myTable = dt.Clone();
+                                    decimal _CalCurrentBasicAmt = 0;
+                                    _CalCurrentBasicAmt = CalBasicAmt4Formula(formula, dt, myTable, _TotalBasicAmt);
+                                    dr1[0]["Amount"] = ((_CalCurrentBasicAmt / 100) * TermRate).ToString();
+                                    dt.AcceptChanges();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            dr1[0]["Amount"] = amt;
+                            dt.AcceptChanges();
+                        }
+                    }
+                    else if (row["Basis"].ToString() == "Q")
+                    {
+                        if (TermRate > 0)
+                        {
+                            dr1[0]["Amount"] = (_Qty * TermRate).ToString();
+                            dt.AcceptChanges();
+                        }
+                        else
+                        {
+                            dr1[0]["Amount"] = "0";
+                            dt.AcceptChanges();
+                        }
+                    }
+                    else if (row["Basis"].ToString() == "R")
+                    {
+                        decimal roundoffVal = Convert.ToDecimal(CalTotalForRoundOff(dt, _TotalBasicAmt));
+                        if (Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) >= 50)
+                        {
+                            if (row["Sign"].ToString() == "+")
+                            {
+                                dr1[0]["Amount"] = (1 - Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) / 100).ToString();
+                                dt.AcceptChanges();
+                            }
+                            else
+                            {
+                                dr1[0]["Amount"] = "0";
+                                dt.AcceptChanges();
+                            }
+                        }
+                        else
+                        {
+                            if (row["Sign"].ToString() == "-")
+                            {
+                                dr1[0]["Amount"] = (Convert.ToDecimal(roundoffVal.ToString().Split('.').Last()) / 100).ToString();
+                                dt.AcceptChanges();
+                            }
+                            else
+                            {
+                                dr1[0]["Amount"] = "0";
+                                dt.AcceptChanges();
+                            }
+                        }
+                    }
+                    i++;
+                }
+            }
+            string val1 = "", val2 = "", val3 = "", val4 = "";
+            decimal totalRecAmt = 0;
+            decimal _val = 0;
+            if (dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    if (row["Amount"].ToString() != null)
+                    {
+                        string sign = row["Sign"].ToString();
+                        decimal.TryParse(row["Amount"].ToString(), out _val);
+                        if (sign == "-")
+                            totalRecAmt += -_val;
+                        else
+                            totalRecAmt += +_val;
+                    }
+                    val1 += "," + row["Sign"].ToString().Trim();
+                    val2 += "," + row["TermId"].ToString().Trim();
+                    val3 += "," + row["TermRate"].ToString().Trim();
+                    val4 += "," + row["Amount"].ToString().Trim();
+                }
+
+                TermDetails = val1.Substring(1) + "|" + val2.Substring(1) + "|" + val3.Substring(1) + "|" + val4.Substring(1);
+            }
+            return totalRecAmt;
+        }
+
+        public static decimal CalCurrentBasicAmt(DataTable calculatedTermDT, int RowPosition, decimal _basicAmt)
+        {
+            decimal val = 0; int i = 0;
+            decimal _totalBasicAmt = _basicAmt;
+            foreach (DataRow row in calculatedTermDT.Rows)
+            {
+                if (i < RowPosition)
+                {
+                    if (row["Amount"].ToString() != null)
+                    {
+                        string sign = row["Sign"].ToString().Trim();
+                        decimal.TryParse(row["Amount"].ToString().Trim(), out val);
+                        if (sign == "-")
+                            _totalBasicAmt += -val;
+                        else
+                            _totalBasicAmt += +val;
+                    }
+                }
+                else
+                    break;
+                i++;
+            }
+            return _totalBasicAmt;
+        }
+
+        public static decimal CalBasicAmt4Formula(string formula, DataTable GridTable, DataTable FilterGridTable, decimal _basicAmt)
+        {
+            decimal val = 0;
+            decimal _totalBasicAmt = _basicAmt;
+
+            string termId = "";
+
+            string[] arrFormula = formula.Split(',');
+            //if (arrFormula[0].ToLower() == "b")
+            //    termId = formula.Remove(0, 2);
+            //else
+            //{
+            termId = formula;
+            _totalBasicAmt = 0;
+            //}
+
+            if (arrFormula.Length == 1 && arrFormula[0].ToLower() == "b")
+            {
+                _totalBasicAmt = _basicAmt;
+            }
+            else
+            {
+                string[] termId1 = termId.Split(',');
+                for (int k = 0; k < termId1.Length; k++)
+                {
+                    DataRow[] rowArray = GridTable.Select("TermId='" + termId1[k] + "'");
+                    foreach (DataRow item in rowArray)
+                    {
+                        FilterGridTable.ImportRow(item);
+                    }
+                }
+
+                foreach (DataRow item in FilterGridTable.Rows)
+                {
+                    decimal.TryParse(item["Amount"].ToString().Trim(), out val);
+                    if (item["Sign"].ToString().Trim() == "-")
+                        _totalBasicAmt += -val;
+                    else
+                        _totalBasicAmt += +val;
+                }
+            }
+
+            return _totalBasicAmt;
+        }
+
+        public static string CalTotalForRoundOff(DataTable calculatedTermDT, decimal _basicAmt)
+        {
+            decimal totalAmt = 0;
+            decimal val = 0;
+            totalAmt = _basicAmt;
+            foreach (DataRow ro in calculatedTermDT.Rows)
+            {
+                if (!string.IsNullOrEmpty(ro["Amount"].ToString()))
+                {
+                    if (ro["Basis"].ToString().Trim().ToUpper() != "R")
+                    {
+                        decimal.TryParse(ro["Amount"].ToString().Trim(), out val);
+
+                        if (ro["Sign"].ToString().Trim() == "-")
+                            totalAmt += -val;
+                        else
+                            totalAmt += +val;
+                    }
+                }
+            }
+            return ClsGlobal.DecimalFormate(totalAmt, 1, ClsGlobal._AmountDecimalFormat).ToString();
+        }
+    }
+}

@@ -1,0 +1,87 @@
+﻿using DataAccessLayer.Common;
+using DataAccessLayer.Interface.Common;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace acmedesktop.SystemSetting
+{
+    public partial class FrmDialogBoxTag : Form
+    {
+		IUserMaster  _objUsr = new ClsUserMaster();
+		CheckBox CBox;
+
+		public string _formname = "", _ListName ="", _SelectedValue="";
+		public int _DesignId = 0;
+
+        private void BtnCancel_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void BtnOk_Click(object sender, EventArgs e)
+        {
+			_SelectedValue = "";
+            this.Close();
+        }
+
+        private void FrmDialogBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                SendKeys.Send("{Tab}");
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                if (BtnCancel.Enabled == true)
+                {
+                    BtnCancel.PerformClick();
+                }
+                DialogResult = DialogResult.Cancel;
+                return;
+            }
+        }
+
+        private void TxtDialog_Validating(object sender, CancelEventArgs e)
+        {
+            if (_ListName == "UserList")
+            {
+
+            }
+        }
+
+		public FrmDialogBoxTag(string formName, string ListName, int DesignId)
+		{
+			InitializeComponent();
+			_formname = formName;
+			_ListName = ListName;
+			_DesignId = DesignId;
+		}
+        private void FrmDialogBox_Load(object sender, EventArgs e)
+        {
+            this.Text = _formname.ToString();
+			if (this._ListName == "UserList")
+			{
+				int i = 1;
+				DataTable dtUserist = _objUsr.GetUserList();
+				foreach (DataRow itemRow in dtUserist.Rows)
+				{
+					CBox = new CheckBox();
+					CBox.Tag = itemRow["UserCode"].ToString();
+					CBox.Text = itemRow["UserName"].ToString();
+					CBox.AutoSize = true;
+					CBox.Location = new Point(10, i*20);
+					this.gpbUserList.Controls.Add(CBox);
+					i++;
+				}
+			}
+        }
+
+    }
+}

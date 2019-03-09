@@ -1,0 +1,241 @@
+﻿using DataAccessLayer.Common;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace acmedesktop
+{
+    public static class Utility
+    {
+        public class MyColorTable : ProfessionalColorTable
+        {
+            //ToolStripDropDownBackground
+            public override Color ToolStripDropDownBackground
+            { get { return Color.White; } }
+
+            //ImageMarginGradientBegin
+            public override Color ImageMarginGradientBegin
+            { get { return Color.White; } }
+
+            //ImageMarginGradientMiddle
+            public override Color ImageMarginGradientMiddle
+            { get { return Color.DarkSlateBlue; } }
+
+            //ImageMarginGradientEnd
+            public override Color ImageMarginGradientEnd
+            { get { return Color.Blue; } }
+
+            //MenuBorder
+            //public override Color MenuBorder
+            //{ get { return Color.Aqua; } }
+
+            //MenuItemBorder
+            public override Color MenuItemBorder
+            { get { return Color.Green; } }
+
+            //MenuItemSelected
+            public override Color MenuItemSelected
+            { get { return Color.Wheat; } }
+
+            //MenuStripGradientBegin
+            public override Color MenuStripGradientBegin
+            { get { return Color.Yellow; } }
+
+            //MenuStripGradientEnd
+            public override Color MenuStripGradientEnd
+            { get { return Color.DarkSlateBlue; } }
+
+            //MenuItemSelectedGradientBegin
+            public override Color MenuItemSelectedGradientBegin
+            { get { return Color.White; } }
+
+            //MenuItemSelectedGradientEnd
+            public override Color MenuItemSelectedGradientEnd
+            { get { return Color.DarkSlateBlue; } }
+
+            //MenuItemPressedGradientBegin
+            public override Color MenuItemPressedGradientBegin
+            { get { return Color.DarkSlateBlue; } }
+
+            //MenuItemPressedGradientEnd
+            public override Color MenuItemPressedGradientEnd
+            { get { return Color.DarkSlateBlue; } }
+
+            //ToolStripGradientBegin
+            public override Color ToolStripGradientBegin
+            { get { return Color.BlueViolet; } }
+
+            //ToolStripGradientMiddle
+            public override Color ToolStripGradientMiddle
+            { get { return Color.CadetBlue; } }
+
+            //ToolStripGradientEnd
+            public override Color ToolStripGradientEnd
+            { get { return Color.CornflowerBlue; } }
+            //ToolStripGradientEnd
+        }
+        public static void EnableDesibleColor(TextBox txt, bool ControlStatus)
+        {
+            txt.BackColor = ControlStatus == false ? System.Drawing.SystemColors.Control : System.Drawing.Color.White;
+        }
+        public static void EnableDesibleComboBoxColor(ComboBox cmb, bool ControlStatus)
+        {
+            cmb.BackColor = ControlStatus == false ? System.Drawing.SystemColors.Control : System.Drawing.Color.White;
+        }
+        public static void EnableDesibleDateColor(MaskedTextBox txt, bool ControlStatus)
+        {
+            txt.BackColor = ControlStatus == false ? System.Drawing.SystemColors.Control : System.Drawing.Color.White;
+        }
+
+        public static void GetVoucherNo1(string DocModule, TextBox _TxtVoucherNo, MaskedTextBox _NextFocusControl, string Tag, string _SearchKey, int DocId=0)
+        {
+            ClsCommon objCommon = new ClsCommon();
+            int CountVoucherNoByModule = objCommon.CountVoucherNoByModule(DocModule);
+            if (CountVoucherNoByModule == 1)
+            {
+                string[] VoucherNoDetails = objCommon.GetVoucherNo("", DocModule, ClsGlobal.BranchId, ClsGlobal.CompanyUnitId);
+                _TxtVoucherNo.Text = VoucherNoDetails[0];
+                _TxtVoucherNo.Tag = VoucherNoDetails[1];
+                if (VoucherNoDetails[2] == "Auto")
+                {
+                    _TxtVoucherNo.Enabled = false;
+                    _NextFocusControl.Focus();
+                }
+                else
+                {
+                    _TxtVoucherNo.Enabled = true;
+                    _TxtVoucherNo.SelectAll();
+                    _TxtVoucherNo.Focus();
+                }
+            }
+            else if (CountVoucherNoByModule > 1)
+            {
+                Common.PickList frmPickList = new Common.PickList("DocumentNumber." + DocModule, _SearchKey);
+                if (Common.PickList.dt != null)
+                {
+                    if (DocId > 0)
+                    {
+                        string[] VoucherNoDetails = objCommon.GetVoucherNo(DocId.ToString(), DocModule, ClsGlobal.BranchId, ClsGlobal.CompanyUnitId);
+                        _TxtVoucherNo.Text = VoucherNoDetails[0];
+                        _TxtVoucherNo.Tag = VoucherNoDetails[1];
+                        if (VoucherNoDetails[2] == "Auto")
+                        {
+                            _TxtVoucherNo.Enabled = false;
+                            _NextFocusControl.Focus();
+                        }
+                        else
+                        {
+                            _TxtVoucherNo.Enabled = true;
+                            _TxtVoucherNo.SelectAll();
+                            _TxtVoucherNo.Focus();
+                        }
+                    }
+                    else
+                    {
+                        if (Common.PickList.dt.Rows.Count > 0)
+                        {
+                            frmPickList.ShowDialog();
+                            if (frmPickList.SelectedList.Count > 0 && Tag == "NEW")
+                            {
+                                string[] VoucherNoDetails = objCommon.GetVoucherNo(frmPickList.SelectedList[0]["DocId"].ToString().Trim(), DocModule, ClsGlobal.BranchId, ClsGlobal.CompanyUnitId);
+                                _TxtVoucherNo.Text = VoucherNoDetails[0];
+                                _TxtVoucherNo.Tag = VoucherNoDetails[1];
+                                if (VoucherNoDetails[2] == "Auto")
+                                {
+                                    _TxtVoucherNo.Enabled = false;
+                                    _NextFocusControl.Focus();
+                                }
+                                else
+                                {
+                                    _TxtVoucherNo.Enabled = true;
+                                    _TxtVoucherNo.SelectAll();
+                                    _TxtVoucherNo.Focus();
+                                }
+                            }
+                            frmPickList.Dispose();
+                        }
+                    }
+                }
+                //_TxtVoucherNo.Focus();
+            }
+        }
+
+        public static void GetVoucherNo2(string DocModule, TextBox _TxtVoucherNo, TextBox _NextFocusControl, string Tag, string _SearchKey,int DocId=0)
+        {
+            ClsCommon objCommon = new ClsCommon();
+            int CountVoucherNoByModule = objCommon.CountVoucherNoByModule(DocModule);
+            if (CountVoucherNoByModule == 1)
+            {
+                string[] VoucherNoDetails = objCommon.GetVoucherNo("", DocModule, ClsGlobal.BranchId, ClsGlobal.CompanyUnitId);
+                _TxtVoucherNo.Text = VoucherNoDetails[0]; // VoucherNo
+                _TxtVoucherNo.Tag = VoucherNoDetails[1]; // DocId
+                //VoucherNoDetails[2]; // NumericalStyle
+                if (VoucherNoDetails[2] == "Auto")
+                {
+                    _TxtVoucherNo.Enabled = false;
+                    _NextFocusControl.Focus();
+                }
+                else
+                {
+                    _TxtVoucherNo.Enabled = true;
+                    _TxtVoucherNo.SelectAll();
+                    _TxtVoucherNo.Focus();
+                }
+            }
+            else if (CountVoucherNoByModule > 1)
+            {
+                if (DocId > 0)
+                {
+                    string[] VoucherNoDetails = objCommon.GetVoucherNo(DocId.ToString(), DocModule, ClsGlobal.BranchId, ClsGlobal.CompanyUnitId);
+                    _TxtVoucherNo.Text = VoucherNoDetails[0];
+                    _TxtVoucherNo.Tag = VoucherNoDetails[1];
+                    if (VoucherNoDetails[2] == "Auto")
+                    {
+                        _TxtVoucherNo.Enabled = false;
+                        _NextFocusControl.Focus();
+                    }
+                    else
+                    {
+                        _TxtVoucherNo.Enabled = true;
+                        _TxtVoucherNo.SelectAll();
+                        _TxtVoucherNo.Focus();
+                    }
+                }
+                else
+                {
+                    Common.PickList frmPickList = new Common.PickList("DocumentNumber." + DocModule, _SearchKey);
+                    if (Common.PickList.dt != null)
+                    {
+                        if (Common.PickList.dt.Rows.Count > 0)
+                        {
+                            frmPickList.ShowDialog();
+                            if (frmPickList.SelectedList.Count > 0 && Tag == "NEW")
+                            {
+                                string[] VoucherNoDetails = objCommon.GetVoucherNo(frmPickList.SelectedList[0]["DocId"].ToString().Trim(), DocModule, ClsGlobal.BranchId, ClsGlobal.CompanyUnitId);
+                                _TxtVoucherNo.Text = VoucherNoDetails[0];
+                                _TxtVoucherNo.Tag = VoucherNoDetails[1];
+                                if (VoucherNoDetails[2] == "Auto")
+                                {
+                                    _TxtVoucherNo.Enabled = false;
+                                    _NextFocusControl.Focus();
+                                }
+                                else
+                                {
+                                    _TxtVoucherNo.Enabled = true;
+                                    _TxtVoucherNo.SelectAll();
+                                    _TxtVoucherNo.Focus();
+                                }
+                            }
+                            frmPickList.Dispose();
+                        }
+                    }
+                }
+                //_TxtVoucherNo.Focus();
+            }
+        }
+    }
+}

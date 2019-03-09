@@ -1,0 +1,301 @@
+﻿using DataAccessLayer.Interface.SystemSetting;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DataAccessLayer.SystemSetting
+{
+    public class ClsDocPrintSetting : IDocPrintSetting
+    {
+        ActiveDataAccess.ActiveDataAccess DAL;
+        public List<PrintSettingModel>  PrintSettingList { get; set; }
+        public List<MapUserPrintSetting> PrintSettingUserMapList { get; set; }
+        public List<MapBranchPrintSetting> PrintSettingBranchMapList { get; set; }
+        public ClsDocPrintSetting()
+        {
+            DAL = new ActiveDataAccess.ActiveDataAccess(Database.DBConnection);
+            PrintSettingList = new List<PrintSettingModel>();
+            PrintSettingUserMapList = new List<MapUserPrintSetting>();
+            PrintSettingBranchMapList = new List<MapBranchPrintSetting>();
+        }
+
+        public void SavePrintSetting( string Tag)
+        {
+            StringBuilder strSql = new StringBuilder();
+            int i = 0;
+            if (Tag == "UPDATE")
+            {
+                foreach (PrintSettingModel det in this.PrintSettingList)
+                {
+                    strSql.Append(" UPDATE[ERP].[PrintSetting] \n");
+                    strSql.Append("SET [DesignName]='"+det.DesignName+"', [NoOfDetailsLine] = " + ((det.NoOfDetailsLine == 0) ? "null" : "" + det.NoOfDetailsLine + "") + ",[Remarks] = '" + det.Remarks + "',[DefaultPrinter] = '" + det.DefaultPrinter + "',[NoOfCopy] = '" + ((det.NoOfCopy == 0) ? "null" : "" + det.NoOfCopy + "") + "' \n");
+                    strSql.Append(",[SaveAndPrint] = '" + det.SaveAndPrint + "',[IsEnable] = '" + det.IsEnable + "' \n");
+                    strSql.Append("WHERE [PrintDesignId] = '" + det.PrintDesignId + "' and [Module]='" + det.Module + "' \n");
+                    i++;
+                }
+            }
+            else
+            {
+                foreach (PrintSettingModel det in this.PrintSettingList)
+                {
+                    strSql.Append("declare @PrintDesignId int=(select ISNULL((Select Top 1 max(cast(PrintDesignId as int))  from ERP.PrintSetting),0)+1) \n");
+                    strSql.Append("Insert INTO ERP.PrintSetting ( PrintDesignId, DesignName, DesignPath, DesignUrl, Module, PaperSize, PaperOrientation, PaperHeight, LeftMargin, RightMargin, TopMargin, BottomMargin, NoOfDetailsLine, Remarks, DefaultPrinter, NoOfCopy, SaveAndPrint, IsEnable, DesignType) VALUES (@PrintDesignId, '" + det.DesignName + "'," + ((det.DesignPath == "") ? "null" : "'" + det.DesignPath + "'") + "," + ((det.DesignUrl == "") ? "null" : "'" + det.DesignUrl + "'") + ",'" + det.Module + "'," + ((det.PaperSize == 0) ? "null" : "" + det.PaperSize + "") + "," + ((det.PaperOrientation == 0) ? "null" : "" + det.PaperOrientation + "") + "," + ((det.PaperHeight == 0) ? "null" : "" + det.PaperHeight + "") + "," + ((det.LeftMargin == 0) ? "null" : "" + det.LeftMargin + "") + "," + ((det.RightMargin == 0) ? "null" : "" + det.RightMargin + "") + "," + ((det.TopMargin == 0) ? "null" : "" + det.TopMargin + "") + "," + ((det.BottomMargin == 0) ? "null" : "" + det.BottomMargin + "") + "," + ((det.NoOfDetailsLine == 0) ? "null" : "" + det.NoOfDetailsLine + "") + ",'" + det.Remarks + "','" + det.DefaultPrinter + "'," + ((det.NoOfCopy == 0) ? "null" : "" + det.NoOfCopy + "") + ",'" + det.SaveAndPrint + "','" + det.IsEnable + "','" + det.DesignType + "')");
+                    i++;
+                }
+            }
+            PrintSettingList.Clear();
+            DAL.ExecuteNonQuery(System.Data.CommandType.Text, strSql.ToString());
+        }
+
+        public void SaveUserPrintSettingMap(int PrintDesignId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            int i = 0;
+            if (this.PrintSettingUserMapList.Count > 0)
+            {
+                strSql.Append("delete from [ERP].[PrintSettingUserMapping] where PrintDesignId ='" + PrintDesignId + "' \n");
+                foreach (MapUserPrintSetting det in this.PrintSettingUserMapList)
+                {
+                    strSql.Append("Insert INTO ERP.PrintSettingUserMapping (PrintDesignId, UserCode) VALUES (" + det.PrintDesignId + ",'" + det.UsreCode + "')\n");
+                    i++;
+                }
+                PrintSettingUserMapList.Clear();
+                DAL.ExecuteNonQuery(System.Data.CommandType.Text, strSql.ToString());
+            }
+        }
+
+        public void SaveBranchPrintSettingMap(int PrintDesignId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            int i = 0;
+            if (this.PrintSettingBranchMapList.Count > 0)
+            {
+                strSql.Append("delete from [ERP].[PrintSettingBranchMapping] where PrintDesignId ='" + PrintDesignId + "' \n");
+                foreach (MapBranchPrintSetting det in this.PrintSettingBranchMapList)
+                {
+                    strSql.Append("Insert INTO ERP.PrintSettingBranchMapping (PrintDesignId, BranchId, CompanyUnitId) VALUES ('" + det.PrintDesignId + "','" + det.BranchId + "','" + det.CompanyUnitId + "') \n");
+                    i++;
+                }
+                PrintSettingBranchMapList.Clear();
+                DAL.ExecuteNonQuery(System.Data.CommandType.Text, strSql.ToString());
+            }
+        }
+
+        public DataTable GetUserPrintSettingMap(int PrintDesignId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select* from ERP.PrintSettingUserMapping where PrintDesignId='" + PrintDesignId + "'");
+            return DAL.ExecuteDataset(System.Data.CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public DataTable GetBranchPrintSettingMap(int PrintDesignId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select* from ERP.PrintSettingBranchMapping where PrintDesignId='" + PrintDesignId + "'");
+            return DAL.ExecuteDataset(System.Data.CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public void DeletePrintSetting( int DesignId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Delete from ERP.PrintSetting where PrintDesignId ='" + DesignId + "' \n");
+            DAL.ExecuteNonQuery(System.Data.CommandType.Text, strSql.ToString());
+        }
+
+        public int CheckExitingDesign(string ModuleName, string DesignName)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select PrintDesignId from Erp.PrintSetting where Module = '" + ModuleName + "' and DesignName = '" + DesignName + "' \n");
+            DataTable dt = DAL.ExecuteDataset(System.Data.CommandType.Text, strSql.ToString()).Tables[0];
+            if (dt.Rows.Count > 0)
+                return 1;
+            else
+                return 0;
+        }
+
+        public string GetOrginalDllDesignName(int DesignId)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select DesignName from Erp.PrintSetting where PrintDesignId = '" + DesignId + "' \n");
+            DataTable dt = DAL.ExecuteDataset(System.Data.CommandType.Text, strSql.ToString()).Tables[0];
+            if (dt.Rows.Count > 0)
+                return dt.Rows[0]["DesignName"].ToString();
+            else
+                return dt.Rows[0]["DesignName"].ToString();
+        }
+
+        public DataTable PrintDesignList(string ModuleName)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("SELECT PrintDesignId, DesignName,Module, NoofCopy, DesignType, DesignPath, IsEnable, SaveAndPrint, Remarks, DefaultPrinter FROM( \n");
+            strSql.Append("SELECT 0 as Tag, PrintDesignId, DesignName,Module, NoofCopy, DesignType, DesignPath, IsEnable, SaveAndPrint, Remarks, DefaultPrinter FROM [ERP].[PrintSetting] WHERE Module = '" + ModuleName + "' and SaveAndPrint = 1 \n");
+            strSql.Append("union all \n");
+            strSql.Append("SELECT 1 as Tag, PrintDesignId, DesignName,Module, NoofCopy, DesignType, DesignPath, IsEnable, SaveAndPrint, Remarks, DefaultPrinter FROM [ERP].[PrintSetting] WHERE Module = '" + ModuleName + "'  and SaveAndPrint = 0 \n");
+            strSql.Append(") as tbl order by Tag \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+
+        public DataTable GetPrintDesignList(string ModuleName, string DesignType)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("SELECT PrintDesignId, DesignName,Module, NoofCopy, DesignType, DesignPath, IsEnable, SaveAndPrint, Remarks, DefaultPrinter FROM( \n");
+            strSql.Append("SELECT 0 as Tag, PrintDesignId, DesignName,Module, NoofCopy, DesignType, DesignPath, IsEnable, SaveAndPrint, Remarks, DefaultPrinter FROM [ERP].[PrintSetting] WHERE Module = '" + ModuleName + "' and SaveAndPrint = 1  and DesignType='" + DesignType + "' \n");
+            strSql.Append("union all \n");
+            strSql.Append("SELECT 1 as Tag, PrintDesignId, DesignName,Module, NoofCopy, DesignType, DesignPath, IsEnable, SaveAndPrint, Remarks, DefaultPrinter FROM [ERP].[PrintSetting] WHERE Module = '" + ModuleName + "'  and SaveAndPrint = 0  and DesignType='" + DesignType + "' \n");
+            strSql.Append(") as tbl order by Tag \n");
+            return DAL.ExecuteDataset(CommandType.Text, strSql.ToString()).Tables[0];
+        }
+        public void UpdatePrintStatus(string VoucherNo, string PrintedBy, DateTime PrintedDate)
+        {
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("Begin \n");
+            strSql.Append("UPDATE [ERP].[SalesIrd] SET PrintCopy=PrintCopy+1,PrintedBy='" + PrintedBy + "',PrintedDate='" + PrintedDate.ToString("MM/dd/yyyy hh:mm:ss tt") + "' WHERE VoucherNo =  '" + VoucherNo + "' \n");
+            strSql.Append("End \n");
+            DAL.ExecuteNonQuery(CommandType.Text, strSql.ToString());
+        }
+
+        public DataSet SalesInvoiceDataSet(string VoucherNo)
+        {
+            DataSet dataSet = new DataSet();
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select * from ViewCompanyInfo \n");
+
+            strSql.Append("select * from ViewSalesInvoiceMaster WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append("AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewSalesInvoiceDetails WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append("AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewSalesInvoiceTermProductWise WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append(" AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewSalesInvoiceTermBillWise WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append(" AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewFinanceTransaction WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append(" AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewLedgerBalance \n");
+
+            //strSql.Append("select * from ViewProductMaster \n");
+            ////if (!string.IsNullOrEmpty(FromNo) && FromNo != "0")
+            ////   strSql.Append(" and [Product Code] = (select  pcode from SalesInvoiceDetails where VNo = '" + FromNo + "') \n");
+
+            strSql.Append("select * from ViewSalesInvoiceOtherDetails WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append(" AND [Voucher No]='" + VoucherNo + "' \n");
+
+            //strSql.Append("select * from ViewTermCondition \n");
+
+            //strSql.Append("select* from MaterializedView1 \n");
+
+            //strSql.Append("select * from View_FisicalYear \n");
+
+            //strSql.Append("Select * from ViewPosAdvance \n");
+
+            dataSet = DAL.ExecuteDataset(CommandType.Text, strSql.ToString());
+            //dataSet.Tables[0].TableName = "SALESINVOICEMASTER";
+            //dataSet.Tables[1].TableName = "SALESINVOICEDETAILS";
+            return dataSet;
+        }
+
+        public DataSet SalesOrderDataSet(string VoucherNo)
+        {
+            DataSet dataSet = new DataSet();
+            StringBuilder strSql = new StringBuilder();
+            strSql.Append("select * from ViewCompanyInfo \n");
+
+            strSql.Append("select * from ViewSalesOrderMaster WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append("AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewSalesOrderDetails WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append("AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewSalesOrderTermProductWise WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append(" AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewSalesOrderTermBillWise WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append(" AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewFinanceTransaction WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append(" AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from ViewLedgerBalance \n");
+
+            //strSql.Append("select * from ViewProductMaster \n");
+            ////if (!string.IsNullOrEmpty(FromNo) && FromNo != "0")
+            ////   strSql.Append(" and [Product Code] = (select  pcode from SalesInvoiceDetails where VNo = '" + FromNo + "') \n");
+
+            strSql.Append("select * from ViewSalesOrderOtherDetails WHERE 1=1 \n");
+            if (!string.IsNullOrEmpty(VoucherNo))
+                strSql.Append(" AND [Voucher No]='" + VoucherNo + "' \n");
+
+            strSql.Append("select * from erp.ProductGroup \n");
+
+            //strSql.Append("select* from MaterializedView1 \n");
+
+            //strSql.Append("select * from View_FisicalYear \n");
+
+            //strSql.Append("Select * from ViewPosAdvance \n");
+
+            dataSet = DAL.ExecuteDataset(CommandType.Text, strSql.ToString());
+
+            return dataSet;
+        }
+
+        public int CheckIsSaveAndPrint(string ModuleName)
+        {
+            DataTable dt = DAL.ExecuteDataset(CommandType.Text, "select PrintDesignId from ERP.PrintSetting where Module='" + ModuleName + "' and SaveAndPrint=1").Tables[0];
+            return dt.Rows.Count > 0 ? 1 : 0;
+        }
+
+        public class PrintSettingModel
+        {
+			public int PrintDesignId { get; set; }
+			public string DesignName { get; set; }
+            public string DesignPath { get; set; }
+            public string DesignUrl { get; set; }
+            public string Module { get; set; }
+            public decimal PaperSize { get; set; }
+            public decimal PaperOrientation { get; set; }
+            public decimal PaperHeight { get; set; }
+            public decimal LeftMargin { get; set; }
+            public decimal RightMargin { get; set; }
+            public decimal TopMargin { get; set; }
+            public decimal BottomMargin { get; set; }
+            public int NoOfDetailsLine { get; set; }
+            public string Remarks { get; set; }
+            public string DefaultPrinter { get; set; }
+            public int NoOfCopy { get; set; }
+            public int SaveAndPrint { get; set; }
+            public int IsEnable { get; set; }
+            public string DesignType { get; set; }
+        }
+
+        public class MapUserPrintSetting
+        {
+            public int PrintDesignId { get; set; }
+            public string UsreCode { get; set; }
+        }
+
+        public class MapBranchPrintSetting
+        {
+            public int PrintDesignId { get; set; }
+            public int BranchId { get; set; }
+            public int CompanyUnitId { get; set; }
+        }
+    }
+}

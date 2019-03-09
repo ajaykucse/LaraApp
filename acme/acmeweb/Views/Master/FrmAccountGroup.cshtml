@@ -1,0 +1,53 @@
+﻿@model IEnumerable<DataAccessLayer.MasterSetup.AccountGroupViewModel>
+@{
+    foreach (var item in Model)
+    {
+        <div class="" role="alert" id="lblmessage" style="display:none">
+            <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+        </div>
+        <input type="hidden" id="TxtTag" value="@item.Tag" />
+        <input type="hidden" id="TxtId" value="@item.AccountGrpId" />
+        <div class="clearfix"></div>
+        <label class="col-md-2">Group Name</label>
+        <div class="col-md-4">
+            <input type="text" class="form-control" id="TxtDescription" maxlength="56" value="@item.AccountGrpDesc" required autocomplete="off" />
+        </div>
+        <label class="col-md-2">Code</label>
+        <div class="col-md-4">
+            <input type="text" class="form-control" id="TxtShortName" maxlength="25" value="@item.AccountGrpShortName" required autocomplete="off" />
+        </div>
+        <div class="clearfix" style="height: 35px;"></div>
+        <label class="col-md-2">Type</label>
+        <div class="col-md-4">
+            <select class="form-control" id="CmbType">
+                <option value="BS" @(item.GrpType == "BS" ? "selected" : "")>Balance Sheet</option>
+                <option value="PL" @(item.GrpType == "PL" ? "selected" : "")>Profit & Loss</option>
+                <option value="TD" @(item.GrpType == "TD" ? "selected" : "")>Trading</option>
+            </select>
+        </div>
+        <label class="col-md-2">Primary Group</label>
+        <div class="col-md-4">
+            <select class="form-control" id="CmbPrimaryGroup">
+                <option value="Assets" @(item.PrimaryGrp == "Assets" ? "selected" : "")>Assets</option>
+                <option value="Expenditure" @(item.PrimaryGrp == "Expenditure" ? "selected" : "")>Expenditure</option>
+                <option value="Income" @(item.PrimaryGrp == "Income" ? "selected" : "")>Income</option>
+                <option value="Liabilities" @(item.PrimaryGrp == "Liabilities" ? "selected" : "")>Liabilities</option>
+            </select>
+        </div>
+        <div class="clearfix" style="height: 35px;"></div>
+        <label class="col-md-2">Schedule</label>
+        <div class="col-md-4">
+            <input type="text" class="form-control txtInt" id="TxtSchedule" value="@item.Schedule" autocomplete="off" />
+        </div>
+        <label class="col-md-2">&nbsp;</label>
+        <div class="col-md-4">
+            <div class="checkbox checkbox-primary">
+                <input id="CbActive" class="styled" type="checkbox">
+                <label for="CbActive">
+                    Active
+                </label>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    }
+}

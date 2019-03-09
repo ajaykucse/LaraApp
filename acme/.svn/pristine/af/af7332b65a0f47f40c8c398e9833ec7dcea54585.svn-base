@@ -1,0 +1,111 @@
+﻿using acmedesktop.Common;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace acmedesktop.DataTransaction
+{
+    public partial class FrmCashPartyInfo : Form
+    {
+        public FrmCashPartyInfo()
+        {
+            InitializeComponent();
+        }
+        
+        private void FrmCashPartyInfo_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+                SendKeys.Send("{Tab}");
+            else if (e.KeyCode == Keys.Escape)
+                BtnCancel.PerformClick();
+        }
+
+        private void FrmCashPartyInfo_Load(object sender, EventArgs e)
+        {
+            TxtPartyName.Text = DataAccessLayer.DataTransaction.Sales.CashPartyViewModel.PartyName;
+
+            //if (!string.IsNullOrEmpty(POSDAL.Entry.POS.SalesBillingAddress1.PartyName))
+            //{
+            //    if (POSDAL.Entry.POS.SalesBillingAddress1.Vendor == this._PartyName)
+            //        GetCustomerData(POSDAL.Entry.POS.SalesBillingAddress1.PartyName);
+            //    else
+            //        clsGlobal.ClearCashData();
+            //}
+
+            //dateChequeDate.Enabled = false;
+            //dateChequeDate.BackColor = SystemColors.Control;
+        }
+
+        private void TxtPartyName_KeyDown(object sender, KeyEventArgs e)
+        {
+
+        }
+
+        private void TxtPartyName_Validating(object sender, CancelEventArgs e)
+        {
+
+        }
+
+        private void BtnPartySearch_Click(object sender, EventArgs e)
+        {
+            ClsButtonClick.PartyInfoBtnClick("", TxtPartyName, "SALES", e);
+        }
+
+        private void TxtChequeNo_Validating(object sender, CancelEventArgs e)
+        {
+
+        }
+
+        private void TxtChequeDate_Validating(object sender, CancelEventArgs e)
+        {
+
+        }
+
+        private void BtnOK_Click(object sender, EventArgs e)
+        {
+            DataAccessLayer.DataTransaction.Sales.CashPartyViewModel.PartyName = TxtPartyName.Text;
+            DataAccessLayer.DataTransaction.Sales.CashPartyViewModel.PartyLedgerId = Convert.ToInt32(TxtPartyName.Tag.ToString());
+            //POSDAL.Entry.POS.SalesBillingAddress1.Vendor = _customername;
+            //POSDAL.Entry.POS.SalesBillingAddress1.GlDesc = "Cash Party";
+            //POSDAL.Entry.POS.SalesBillingAddress1.PartyName = txtPartyName.Text.Trim();
+            //POSDAL.Entry.POS.SalesBillingAddress1.VAtNo = txtVatPanNo.Text.Trim();
+            //POSDAL.Entry.POS.SalesBillingAddress1.Billing_Address = txtAddress.Text.Trim();
+            //POSDAL.Entry.POS.SalesBillingAddress1.Billing_City = txtCity.Text.Trim();
+            //POSDAL.Entry.POS.SalesBillingAddress1.Billing_State = txtContactPerson.Text.Trim();
+            //POSDAL.Entry.POS.SalesBillingAddress1.Billing_Country = txtTelMobile.Text.Trim();
+            //POSDAL.Entry.POS.SalesBillingAddress1.Billing_Email = txtEmail.Text.Trim();
+            //POSDAL.Entry.POS.SalesBillingAddress1.Cheque_no = txtChequeNo.Text.Trim();
+            //if (dateChequeDate.Text != "  /  /")
+            //{
+            //    if (clsGlobal.Date_Type == "M")
+            //        POSDAL.Entry.POS.SalesBillingAddress1.Cheque_Date = Convert.ToDateTime(DateMiti.GetDate(dateChequeDate.Text).ToString());
+            //    else
+            //        POSDAL.Entry.POS.SalesBillingAddress1.Cheque_Date = Convert.ToDateTime(dateChequeDate.Text);
+            //}
+            //else
+            //    POSDAL.Entry.POS.SalesBillingAddress1.Cheque_Date = null;
+
+
+            //POSDAL.Entry.POS.SalesBillingAddress1.Shipping_Address = "";
+            //POSDAL.Entry.POS.SalesBillingAddress1.Shipping_City = "";
+            //POSDAL.Entry.POS.SalesBillingAddress1.Shipping_State = "";
+            //POSDAL.Entry.POS.SalesBillingAddress1.Shipping_Country = "";
+            //POSDAL.Entry.POS.SalesBillingAddress1.Shipping_Email = "";
+            this.Close();
+        }
+
+        private void BtnCancel_Click(object sender, EventArgs e)
+        {
+            this.Close();
+            this.Dispose();
+        }
+
+        
+    }
+}
